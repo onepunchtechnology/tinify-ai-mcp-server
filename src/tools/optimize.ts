@@ -24,6 +24,7 @@ export interface OptimizeImageParams {
 }
 
 export interface OptimizeImageResult {
+  [key: string]: unknown;
   output_path: string;
   output_size_bytes: number;
   output_width_px: number | null;

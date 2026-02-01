@@ -1,6 +1,7 @@
 import { ApiError } from "./api/client.js";
 
 interface McpErrorResult {
+  [key: string]: unknown;
   content: Array<{ type: "text"; text: string }>;
   isError: true;
 }

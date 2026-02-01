@@ -1,5 +1,5 @@
 import { ApiError } from "./client.js";
-import EventSourcePoly from "eventsource";
+import { EventSource as EventSourcePoly } from "eventsource";
 
 export interface CompletedJob {
   job_id: string;
