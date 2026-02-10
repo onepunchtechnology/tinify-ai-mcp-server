@@ -1,0 +1,26 @@
+{
+  "$schema": "https://registry.modelcontextprotocol.io/schemas/server.json",
+  "name": "@tinify-ai/mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for Tinify image optimization — one tool, max optimization",
+  "repository": {
+    "url": "https://github.com/onepunchtechnology/tinify-ai-mcp-server",
+    "source": "https://github.com/onepunchtechnology/tinify-ai-mcp-server",
+    "homepage": "https://tinify.ai"
+  },
+  "packages": [
+    {
+      "registry_name": "npm",
+      "name": "@tinify-ai/mcp-server",
+      "version": "1.0.0",
+      "runtime": {
+        "type": "node",
+        "config": {
+          "command": "npx",
+          "args": ["-y", "@tinify-ai/mcp-server"],
+          "env": {}
+        }
+      }
+    }
+  ]
+}
