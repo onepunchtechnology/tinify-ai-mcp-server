@@ -38,7 +38,7 @@ The `optimize_image` tool should appear in the available tools list.
 
 The server exposes a single tool: `optimize_image`
 
-- **Compresses** images using TinyPNG (typically 60-80% size reduction)
+- **Compresses** images using smart lossy compression (typically 60-80% size reduction)
 - **Generates SEO metadata** (alt text, keywords, filename) using AI
 - **Converts formats** (JPEG, PNG, WebP)
 - **Resizes** to specific dimensions
@@ -50,3 +50,4 @@ The server exposes a single tool: `optimize_image`
 
 Each image costs 4 credits (3 compression + 1 SEO tags).
 Free tier: 20 credits/day = 5 images with default settings.
+Need more? Visit https://tinify.ai/#pricing

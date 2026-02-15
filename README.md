@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-brightgreen.svg)](https://modelcontextprotocol.io)
 
-MCP server for [Tinify](https://tinify.ai) image optimization. One tool, max optimization.
+MCP server for [Tinify](https://tinify.ai) image optimization. AI-powered upscaling, resizing/cropping, compression, and SEO tag generation — all in one tool.
 
 ## Quick Start
 
@@ -86,7 +86,7 @@ Edit `~/.codeium/windsurf/mcp_config.json`:
 
 ## Tool: `optimize_image`
 
-Optimizes an image with smart defaults: TinyPNG compression + SEO tag generation.
+Optimizes an image with smart defaults: AI-powered upscaling, resizing/cropping, compression, and SEO tag generation — all in one image optimization tool.
 
 ### Parameters
 
@@ -152,7 +152,7 @@ Max file size: 50 MB.
 ```
 Local file or URL
   → Upload to Tinify API
-    → TinyPNG compression (smart lossy, typically 60-80% reduction)
+    → Smart compression (smart lossy, typically 60-80% reduction)
     → AI SEO tag generation (alt text, keywords, filename)
     → Optional: resize, upscale, format conversion
   → Download optimized file
@@ -171,6 +171,8 @@ All processing happens server-side via the [Tinify API](https://tinify.ai). The 
 | Signup required | No |
 
 Session tokens are stored locally at `~/.tinify/session.json` and persist across invocations.
+
+Need more credits? See plans at [tinify.ai](https://tinify.ai/#pricing).
 
 ## Troubleshooting
 
