@@ -16,7 +16,7 @@ server.registerTool(
   {
     title: "Optimize Image",
     description:
-      "Optimize an image with smart defaults: TinyPNG compression + SEO tag generation. " +
+      "Optimize an image with smart defaults: AI-powered upscaling, resizing/cropping, compression, and SEO tag generation — all in one image optimization tool. " +
       "Accepts local file paths or remote URLs. Returns the optimized file path and metadata.",
     inputSchema: {
       input: z
