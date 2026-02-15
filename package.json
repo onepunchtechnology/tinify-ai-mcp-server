@@ -1,14 +1,15 @@
 {
-  "name": "@tinify/mcp-server",
-  "version": "1.0.0",
+  "name": "@tinify-ai/mcp-server",
+  "version": "1.0.2",
   "description": "MCP server for Tinify image optimization — one tool, max optimization",
   "type": "module",
   "bin": {
-    "tinify-mcp-server": "dist/index.js"
+    "tinify-ai-mcp-server": "dist/index.js"
   },
   "main": "dist/index.js",
   "files": [
-    "dist"
+    "dist",
+    "LICENSE"
   ],
   "scripts": {
     "dev": "tsx src/index.ts",
@@ -21,17 +22,22 @@
   },
   "keywords": [
     "mcp",
+    "mcp-server",
     "model-context-protocol",
-    "tinify",
     "image-optimization",
-    "compression",
+    "image-compression",
+    "image-resize",
+    "image-upscale",
     "seo",
-    "tinypng"
+    "webp",
+    "ai-image",
+    "claude",
+    "tinify"
   ],
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tinify/mcp-server"
+    "url": "https://github.com/onepunchtechnology/tinify-ai-mcp-server"
   },
   "publishConfig": {
     "access": "public"
