@@ -94,7 +94,7 @@ Optimizes an image with smart defaults: AI-powered upscaling, resizing/cropping,
 |-----------|------|----------|---------|-------------|
 | `input` | string | Yes | — | Local file path or remote URL |
 | `output_path` | string | No | auto | Where to save the result |
-| `output_format` | string | No | original | jpeg, png, webp, or original |
+| `output_format` | string | No | original | jpg, png, webp, avif, or original |
 | `output_width_px` | int | No | — | Target width in pixels |
 | `output_height_px` | int | No | — | Target height in pixels |
 | `output_upscale_factor` | float | No | — | Scale factor (2.0, 4.0) |
@@ -141,9 +141,15 @@ Structured metadata is also returned with `seo_keywords`, `seo_filename`, and fu
 
 | Format | Input | Output |
 |--------|-------|--------|
-| JPEG | Yes | Yes |
+| JPG | Yes | Yes |
 | PNG | Yes | Yes |
 | WebP | Yes | Yes |
+| AVIF | Yes | Yes |
+| HEIC/HEIF | Yes* | No |
+| TIFF | Yes* | No |
+| BMP | Yes* | No |
+
+*Automatically converted to JPG at upload time.
 
 Max file size: 50 MB.
 
