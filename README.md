@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-brightgreen.svg)](https://modelcontextprotocol.io)
 
-MCP server for [Tinify](https://tinify.ai) image optimization. AI-powered upscaling, resizing/cropping, compression, and SEO tag generation — all in one tool.
+MCP server for [tinify.ai](https://tinify.ai) image optimization. AI-powered upscaling, resizing/cropping, compression, and SEO tag generation — all in one tool.
 
 ## Quick Start
 
