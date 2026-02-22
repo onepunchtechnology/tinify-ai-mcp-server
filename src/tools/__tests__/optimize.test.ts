@@ -144,6 +144,197 @@ describe("optimizeImage", () => {
     expect(processCall.settings.output_seo_tag_gen).toBe(false);
   });
 
+  describe("URL input", () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it("fetches URL input via HTTP before uploading", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValueOnce({
+          ok: true,
+          arrayBuffer: async () => new TextEncoder().encode("url-image-data").buffer,
+        }),
+      );
+
+      vi.mocked(uploadFile).mockResolvedValueOnce({
+        temp_file_id: "temp-url",
+        original_filename: "photo.jpg",
+        file_size: 14,
+        mime_type: "image/jpeg",
+        session_token: null,
+      });
+      vi.mocked(triggerProcessing).mockResolvedValueOnce({
+        success: true,
+        jobs: [{ id: "job-1", temp_file_id: "temp-url", status: "queued" }],
+        credits_used: 4,
+        credits_remaining: 16,
+      });
+      vi.mocked(waitForCompletion).mockResolvedValueOnce({
+        job_id: "job-1",
+        status: "completed",
+        processed_size: 10000,
+        processed_format: "jpg",
+        processed_width: 400,
+        processed_height: 300,
+        processed_compression_ratio: 0.7,
+      });
+      vi.mocked(downloadFile).mockResolvedValueOnce({
+        buffer: Buffer.from("optimized-jpg"),
+        filename: "photo.tinified.jpg",
+      });
+
+      const result = await optimizeImage({
+        input: "https://cdn.example.com/photo.jpg",
+        baseUrl: "https://api.tinify.ai",
+      });
+
+      expect(vi.mocked(uploadFile)).toHaveBeenCalledWith(
+        expect.objectContaining({ filename: "photo.jpg" }),
+      );
+      expect(result.output_path).toContain("photo.tinified.jpg");
+    });
+  });
+
+  it("throws when server returns an empty jobs array (no job created)", async () => {
+    vi.mocked(uploadFile).mockResolvedValueOnce({
+      temp_file_id: "temp-1",
+      original_filename: "hero.png",
+      file_size: 50000,
+      mime_type: "image/png",
+      session_token: null,
+    });
+    vi.mocked(triggerProcessing).mockResolvedValueOnce({
+      success: true,
+      jobs: [],
+      credits_used: 0,
+      credits_remaining: 20,
+    });
+
+    await expect(
+      optimizeImage({
+        input: path.join(tmpDir, "hero.png"),
+        baseUrl: "https://api.tinify.ai",
+      })
+    ).rejects.toThrow("No job created by the server.");
+  });
+
+  it("persists session token returned from upload", async () => {
+    let capturedSaveToken: ReturnType<typeof vi.fn> | undefined;
+    vi.mocked(SessionManager).mockImplementation(() => {
+      capturedSaveToken = vi.fn();
+      return {
+        sessionDir: "/tmp/.tinify",
+        getToken: vi.fn().mockReturnValue(null),
+        saveToken: capturedSaveToken,
+      } as any;
+    });
+
+    vi.mocked(uploadFile).mockResolvedValueOnce({
+      temp_file_id: "temp-1",
+      original_filename: "hero.png",
+      file_size: 50000,
+      mime_type: "image/png",
+      session_token: "fresh-token-xyz",
+    });
+    vi.mocked(triggerProcessing).mockResolvedValueOnce({
+      success: true,
+      jobs: [{ id: "job-1", temp_file_id: "temp-1", status: "queued" }],
+      credits_used: 4,
+      credits_remaining: 16,
+    });
+    vi.mocked(waitForCompletion).mockResolvedValueOnce({
+      job_id: "job-1",
+      status: "completed",
+      processed_size: 30000,
+      processed_format: "png",
+    });
+    vi.mocked(downloadFile).mockResolvedValueOnce({
+      buffer: Buffer.from("data"),
+      filename: "hero.tinified.png",
+    });
+
+    await optimizeImage({
+      input: path.join(tmpDir, "hero.png"),
+      baseUrl: "https://api.tinify.ai",
+    });
+
+    expect(capturedSaveToken).toHaveBeenCalledWith("fresh-token-xyz");
+  });
+
+  it("uses download buffer length when processed_size is null", async () => {
+    vi.mocked(uploadFile).mockResolvedValueOnce({
+      temp_file_id: "temp-1",
+      original_filename: "hero.png",
+      file_size: 50000,
+      mime_type: "image/png",
+      session_token: null,
+    });
+    vi.mocked(triggerProcessing).mockResolvedValueOnce({
+      success: true,
+      jobs: [{ id: "job-1", temp_file_id: "temp-1", status: "queued" }],
+      credits_used: 4,
+      credits_remaining: 16,
+    });
+    vi.mocked(waitForCompletion).mockResolvedValueOnce({
+      job_id: "job-1",
+      status: "completed",
+      processed_size: null,
+      processed_format: "png",
+    });
+    vi.mocked(downloadFile).mockResolvedValueOnce({
+      buffer: Buffer.alloc(12345),
+      filename: "hero.tinified.png",
+    });
+
+    const result = await optimizeImage({
+      input: path.join(tmpDir, "hero.png"),
+      baseUrl: "https://api.tinify.ai",
+    });
+
+    expect(result.output_size_bytes).toBe(12345);
+  });
+
+  it("passes upscale_factor, resize_mode, and aspect_lock to processing settings", async () => {
+    vi.mocked(uploadFile).mockResolvedValueOnce({
+      temp_file_id: "temp-1",
+      original_filename: "hero.png",
+      file_size: 50000,
+      mime_type: "image/png",
+      session_token: null,
+    });
+    vi.mocked(triggerProcessing).mockResolvedValueOnce({
+      success: true,
+      jobs: [{ id: "job-1", temp_file_id: "temp-1", status: "queued" }],
+      credits_used: 7,
+      credits_remaining: 13,
+    });
+    vi.mocked(waitForCompletion).mockResolvedValueOnce({
+      job_id: "job-1",
+      status: "completed",
+      processed_size: 20000,
+      processed_format: "png",
+    });
+    vi.mocked(downloadFile).mockResolvedValueOnce({
+      buffer: Buffer.from("data"),
+      filename: "hero.tinified.png",
+    });
+
+    await optimizeImage({
+      input: path.join(tmpDir, "hero.png"),
+      baseUrl: "https://api.tinify.ai",
+      output_upscale_factor: 2,
+      output_resize_mode: "crop",
+      output_aspect_lock: false,
+    });
+
+    const processCall = vi.mocked(triggerProcessing).mock.calls[0][0];
+    expect(processCall.settings.output_upscale_factor).toBe(2);
+    expect(processCall.settings.output_resize_mode).toBe("crop");
+    expect(processCall.settings.output_aspect_lock).toBe(false);
+  });
+
   it("creates parent directories if output_path doesn't exist", async () => {
     vi.mocked(uploadFile).mockResolvedValueOnce({
       temp_file_id: "temp-1",
