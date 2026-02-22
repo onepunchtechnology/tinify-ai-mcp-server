@@ -69,6 +69,94 @@ describe("waitForCompletion", () => {
     await expect(promise).rejects.toThrow("Processing failed: TinyPNG API error");
   });
 
+  it("rejects on SSE error event with message data", async () => {
+    const listeners: Record<string, (event: any) => void> = {};
+    const mockEventSource = {
+      addEventListener: vi.fn((event: string, handler: any) => {
+        listeners[event] = handler;
+      }),
+      close: vi.fn(),
+    };
+
+    vi.stubGlobal("EventSource", vi.fn(() => mockEventSource));
+
+    const promise = waitForCompletion({
+      baseUrl: "https://api.tinify.ai",
+      jobId: "job-1",
+      timeoutMs: 60000,
+    });
+
+    listeners["error"]({ data: JSON.stringify({ message: "Connection reset by peer" }) });
+
+    await expect(promise).rejects.toThrow("Processing error: Connection reset by peer");
+    expect(mockEventSource.close).toHaveBeenCalled();
+  });
+
+  it("rejects on SSE error event with no data (connection dropped)", async () => {
+    const listeners: Record<string, (event: any) => void> = {};
+    const mockEventSource = {
+      addEventListener: vi.fn((event: string, handler: any) => {
+        listeners[event] = handler;
+      }),
+      close: vi.fn(),
+    };
+
+    vi.stubGlobal("EventSource", vi.fn(() => mockEventSource));
+
+    const promise = waitForCompletion({
+      baseUrl: "https://api.tinify.ai",
+      jobId: "job-1",
+      timeoutMs: 60000,
+    });
+
+    listeners["error"]({ data: null });
+
+    await expect(promise).rejects.toThrow("Processing error: Connection lost");
+    expect(mockEventSource.close).toHaveBeenCalled();
+  });
+
+  it("rejects on server-side timeout event", async () => {
+    const listeners: Record<string, (event: any) => void> = {};
+    const mockEventSource = {
+      addEventListener: vi.fn((event: string, handler: any) => {
+        listeners[event] = handler;
+      }),
+      close: vi.fn(),
+    };
+
+    vi.stubGlobal("EventSource", vi.fn(() => mockEventSource));
+
+    const promise = waitForCompletion({
+      baseUrl: "https://api.tinify.ai",
+      jobId: "job-1",
+      timeoutMs: 60000,
+    });
+
+    listeners["timeout"]({});
+
+    await expect(promise).rejects.toThrow("Processing timed out");
+    expect(mockEventSource.close).toHaveBeenCalled();
+  });
+
+  it("opens SSE connection to the correct URL", () => {
+    const mockEventSource = {
+      addEventListener: vi.fn(),
+      close: vi.fn(),
+    };
+    const MockESConstructor = vi.fn(() => mockEventSource);
+    vi.stubGlobal("EventSource", MockESConstructor);
+
+    waitForCompletion({
+      baseUrl: "https://api.tinify.ai",
+      jobId: "job-abc",
+      timeoutMs: 60000,
+    });
+
+    expect(MockESConstructor).toHaveBeenCalledWith(
+      "https://api.tinify.ai/status/job-abc/stream"
+    );
+  });
+
   it("rejects on timeout", async () => {
     vi.useFakeTimers();
 

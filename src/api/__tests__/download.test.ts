@@ -51,4 +51,44 @@ describe("downloadFile", () => {
       downloadFile({ baseUrl: "https://api.tinify.ai", jobId: "job-1" })
     ).rejects.toThrow("Job not completed");
   });
+
+  it("throws on job not found (404)", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 404,
+      json: async () => ({ detail: "Job not found" }),
+    });
+
+    await expect(
+      downloadFile({ baseUrl: "https://api.tinify.ai", jobId: "job-1" })
+    ).rejects.toThrow("Job not found");
+  });
+
+  it("throws generic error on 500", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      json: async () => ({ detail: "Server error" }),
+    });
+
+    await expect(
+      downloadFile({ baseUrl: "https://api.tinify.ai", jobId: "job-1" })
+    ).rejects.toThrow("Server error");
+  });
+
+  it("uses fallback filename 'output' when Content-Disposition header is absent", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      headers: new Headers(),
+      arrayBuffer: async () => new ArrayBuffer(50),
+    });
+
+    const result = await downloadFile({
+      baseUrl: "https://api.tinify.ai",
+      jobId: "job-1",
+    });
+
+    expect(result.filename).toBe("output");
+    expect(result.buffer.length).toBe(50);
+  });
 });

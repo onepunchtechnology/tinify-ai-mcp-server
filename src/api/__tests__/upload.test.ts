@@ -92,4 +92,45 @@ describe("uploadFile", () => {
       })
     ).rejects.toThrow("File exceeds maximum size limit");
   });
+
+  it("does not send X-Session-Token header when sessionToken is null", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        success: true,
+        temp_file_id: "temp-789",
+        original_filename: "test.png",
+        file_size: 1000,
+        mime_type: "image/png",
+        session_token: null,
+      }),
+    });
+
+    await uploadFile({
+      baseUrl: "https://api.tinify.ai",
+      fileBuffer: Buffer.from("data"),
+      filename: "test.png",
+      sessionToken: null,
+    });
+
+    const headers = mockFetch.mock.calls[0][1].headers;
+    expect(headers["X-Session-Token"]).toBeUndefined();
+  });
+
+  it("throws generic API error on 500 with server detail", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      json: async () => ({ detail: "Internal server error" }),
+    });
+
+    await expect(
+      uploadFile({
+        baseUrl: "https://api.tinify.ai",
+        fileBuffer: Buffer.from("data"),
+        filename: "test.png",
+        sessionToken: null,
+      })
+    ).rejects.toThrow("Internal server error");
+  });
 });

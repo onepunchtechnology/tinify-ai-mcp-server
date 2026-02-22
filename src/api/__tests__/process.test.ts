@@ -45,6 +45,94 @@ describe("triggerProcessing", () => {
     expect(body.settings.output_seo_tag_gen).toBe(true);
   });
 
+  it("includes X-Session-Token header when session token is provided", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        success: true,
+        jobs: [{ id: "job-1", temp_file_id: "temp-1", status: "queued" }],
+        credits_used: 4,
+        credits_remaining: 16,
+      }),
+    });
+
+    await triggerProcessing({
+      baseUrl: "https://api.tinify.ai",
+      tempFileIds: ["temp-1"],
+      settings: {},
+      sessionToken: "my-session-token",
+    });
+
+    const headers = mockFetch.mock.calls[0][1].headers;
+    expect(headers["X-Session-Token"]).toBe("my-session-token");
+  });
+
+  it("does not include X-Session-Token header when sessionToken is null", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        success: true,
+        jobs: [{ id: "job-1", temp_file_id: "temp-1", status: "queued" }],
+        credits_used: 4,
+        credits_remaining: 16,
+      }),
+    });
+
+    await triggerProcessing({
+      baseUrl: "https://api.tinify.ai",
+      tempFileIds: ["temp-1"],
+      settings: {},
+      sessionToken: null,
+    });
+
+    const headers = mockFetch.mock.calls[0][1].headers;
+    expect(headers["X-Session-Token"]).toBeUndefined();
+  });
+
+  it("sends all temp_file_ids in the request body", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        success: true,
+        jobs: [
+          { id: "job-1", temp_file_id: "temp-1", status: "queued" },
+          { id: "job-2", temp_file_id: "temp-2", status: "queued" },
+        ],
+        credits_used: 8,
+        credits_remaining: 12,
+      }),
+    });
+
+    const result = await triggerProcessing({
+      baseUrl: "https://api.tinify.ai",
+      tempFileIds: ["temp-1", "temp-2"],
+      settings: { output_format: "webp" },
+      sessionToken: null,
+    });
+
+    const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+    expect(body.temp_file_ids).toEqual(["temp-1", "temp-2"]);
+    expect(result.jobs).toHaveLength(2);
+  });
+
+  it("throws generic error on 500 with server detail", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      headers: new Headers(),
+      json: async () => ({ detail: "Internal processing error" }),
+    });
+
+    await expect(
+      triggerProcessing({
+        baseUrl: "https://api.tinify.ai",
+        tempFileIds: ["temp-1"],
+        settings: {},
+        sessionToken: null,
+      })
+    ).rejects.toThrow("Internal processing error");
+  });
+
   it("throws on insufficient credits (429) with parsed details", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
