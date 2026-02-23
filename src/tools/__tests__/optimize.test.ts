@@ -86,7 +86,7 @@ describe("optimizeImage", () => {
       baseUrl: "https://api.tinify.ai",
     });
 
-    expect(result.output_path).toContain("hero.tinified.png");
+    expect(result.output_path).toContain("hero-image.png");
     expect(result.output_size_bytes).toBe(30000);
     expect(result.output_width_px).toBe(800);
     expect(result.output_height_px).toBe(600);
@@ -296,7 +296,7 @@ describe("optimizeImage", () => {
     expect(result.output_size_bytes).toBe(12345);
   });
 
-  it("passes upscale_factor, resize_mode, and aspect_lock to processing settings", async () => {
+  it("passes upscale_factor and resize_mode to processing settings", async () => {
     vi.mocked(uploadFile).mockResolvedValueOnce({
       temp_file_id: "temp-1",
       original_filename: "hero.png",
@@ -326,13 +326,207 @@ describe("optimizeImage", () => {
       baseUrl: "https://api.tinify.ai",
       output_upscale_factor: 2,
       output_resize_mode: "crop",
-      output_aspect_lock: false,
     });
 
     const processCall = vi.mocked(triggerProcessing).mock.calls[0][0];
     expect(processCall.settings.output_upscale_factor).toBe(2);
+    // resize_mode without both dimensions goes through else-if branch unchanged
     expect(processCall.settings.output_resize_mode).toBe("crop");
-    expect(processCall.settings.output_aspect_lock).toBe(false);
+    // aspect_lock is NOT set when dimensions are not both provided
+    expect(processCall.settings.output_aspect_lock).toBeUndefined();
+  });
+
+  describe("aspect_lock derivation from dimension inputs", () => {
+    function mockSuccessFlow() {
+      vi.mocked(uploadFile).mockResolvedValueOnce({
+        temp_file_id: "temp-1",
+        original_filename: "hero.png",
+        file_size: 50000,
+        mime_type: "image/png",
+        session_token: null,
+      });
+      vi.mocked(triggerProcessing).mockResolvedValueOnce({
+        success: true,
+        jobs: [{ id: "job-1", temp_file_id: "temp-1", status: "queued" }],
+        credits_used: 4,
+        credits_remaining: 16,
+      });
+      vi.mocked(waitForCompletion).mockResolvedValueOnce({
+        job_id: "job-1",
+        status: "completed",
+        processed_size: 20000,
+        processed_format: "png",
+        processed_width: 2048,
+        processed_height: 2048,
+      });
+      vi.mocked(downloadFile).mockResolvedValueOnce({
+        buffer: Buffer.from("data"),
+        filename: "hero.tinified.png",
+      });
+    }
+
+    it("derives output_aspect_lock=false and defaults resize_mode=pad when both dimensions specified", async () => {
+      mockSuccessFlow();
+
+      await optimizeImage({
+        input: path.join(tmpDir, "hero.png"),
+        baseUrl: "https://api.tinify.ai",
+        output_width_px: 2048,
+        output_height_px: 2048,
+      });
+
+      const processCall = vi.mocked(triggerProcessing).mock.calls[0][0];
+      expect(processCall.settings.output_aspect_lock).toBe(false);
+      expect(processCall.settings.output_resize_mode).toBe("pad");
+    });
+
+    it("uses crop mode when both dimensions + output_resize_mode='crop'", async () => {
+      mockSuccessFlow();
+
+      await optimizeImage({
+        input: path.join(tmpDir, "hero.png"),
+        baseUrl: "https://api.tinify.ai",
+        output_width_px: 2048,
+        output_height_px: 2048,
+        output_resize_mode: "crop",
+      });
+
+      const processCall = vi.mocked(triggerProcessing).mock.calls[0][0];
+      expect(processCall.settings.output_aspect_lock).toBe(false);
+      expect(processCall.settings.output_resize_mode).toBe("crop");
+    });
+
+    it("does NOT set output_aspect_lock when only width is specified", async () => {
+      mockSuccessFlow();
+
+      await optimizeImage({
+        input: path.join(tmpDir, "hero.png"),
+        baseUrl: "https://api.tinify.ai",
+        output_width_px: 2048,
+      });
+
+      const processCall = vi.mocked(triggerProcessing).mock.calls[0][0];
+      expect(processCall.settings.output_aspect_lock).toBeUndefined();
+      expect(processCall.settings.output_resize_mode).toBeUndefined();
+    });
+
+    it("does NOT set output_aspect_lock when only height is specified", async () => {
+      mockSuccessFlow();
+
+      await optimizeImage({
+        input: path.join(tmpDir, "hero.png"),
+        baseUrl: "https://api.tinify.ai",
+        output_height_px: 1080,
+      });
+
+      const processCall = vi.mocked(triggerProcessing).mock.calls[0][0];
+      expect(processCall.settings.output_aspect_lock).toBeUndefined();
+      expect(processCall.settings.output_resize_mode).toBeUndefined();
+    });
+
+    it("does NOT set output_aspect_lock when no dimensions are specified", async () => {
+      mockSuccessFlow();
+
+      await optimizeImage({
+        input: path.join(tmpDir, "hero.png"),
+        baseUrl: "https://api.tinify.ai",
+      });
+
+      const processCall = vi.mocked(triggerProcessing).mock.calls[0][0];
+      expect(processCall.settings.output_aspect_lock).toBeUndefined();
+    });
+  });
+
+  describe("SEO filename on disk", () => {
+    function mockWithSeoFilename(seoFilename: string | null | undefined) {
+      vi.mocked(uploadFile).mockResolvedValueOnce({
+        temp_file_id: "temp-1",
+        original_filename: "hero.png",
+        file_size: 50000,
+        mime_type: "image/png",
+        session_token: null,
+      });
+      vi.mocked(triggerProcessing).mockResolvedValueOnce({
+        success: true,
+        jobs: [{ id: "job-1", temp_file_id: "temp-1", status: "queued" }],
+        credits_used: 4,
+        credits_remaining: 16,
+      });
+      vi.mocked(waitForCompletion).mockResolvedValueOnce({
+        job_id: "job-1",
+        status: "completed",
+        processed_size: 30000,
+        processed_format: "png",
+        seo_filename: seoFilename,
+      });
+      vi.mocked(downloadFile).mockResolvedValueOnce({
+        buffer: Buffer.from("data"),
+        filename: "hero.tinified.png",
+      });
+    }
+
+    it("saves file with SEO slug when seo_filename returned and seo_tag_gen enabled (default)", async () => {
+      mockWithSeoFilename("scenic-mountain-hero");
+
+      const result = await optimizeImage({
+        input: path.join(tmpDir, "hero.png"),
+        baseUrl: "https://api.tinify.ai",
+      });
+
+      expect(result.output_path).toContain("scenic-mountain-hero.png");
+      expect(result.output_path).not.toContain("tinified");
+      expect(fs.existsSync(result.output_path)).toBe(true);
+    });
+
+    it("falls back to tinified pattern when output_seo_tag_gen=false", async () => {
+      mockWithSeoFilename("scenic-mountain-hero");
+
+      const result = await optimizeImage({
+        input: path.join(tmpDir, "hero.png"),
+        baseUrl: "https://api.tinify.ai",
+        output_seo_tag_gen: false,
+      });
+
+      expect(result.output_path).toContain("hero.tinified.png");
+    });
+
+    it("falls back to tinified pattern when seo_filename is null", async () => {
+      mockWithSeoFilename(null);
+
+      const result = await optimizeImage({
+        input: path.join(tmpDir, "hero.png"),
+        baseUrl: "https://api.tinify.ai",
+      });
+
+      expect(result.output_path).toContain("hero.tinified.png");
+    });
+
+    it("explicit full output_path is always used regardless of SEO filename", async () => {
+      mockWithSeoFilename("some-seo-slug");
+
+      const explicitPath = path.join(tmpDir, "custom.png");
+      const result = await optimizeImage({
+        input: path.join(tmpDir, "hero.png"),
+        output_path: explicitPath,
+        baseUrl: "https://api.tinify.ai",
+      });
+
+      expect(result.output_path).toBe(explicitPath);
+    });
+
+    it("uses SEO filename inside directory output_path", async () => {
+      mockWithSeoFilename("product-photo");
+
+      const dirPath = path.join(tmpDir, "output") + "/";
+      const result = await optimizeImage({
+        input: path.join(tmpDir, "hero.png"),
+        output_path: dirPath,
+        baseUrl: "https://api.tinify.ai",
+      });
+
+      expect(result.output_path).toContain("product-photo.png");
+      expect(result.output_path).toContain(path.join(tmpDir, "output"));
+    });
   });
 
   it("creates parent directories if output_path doesn't exist", async () => {

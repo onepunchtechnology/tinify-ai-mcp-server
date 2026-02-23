@@ -112,4 +112,72 @@ describe("resolveOutputPath", () => {
       })
     ).toBe("/Users/me/hero.tinified.png");
   });
+
+  describe("seoFilename", () => {
+    it("uses SEO filename instead of tinified suffix when provided", () => {
+      expect(
+        resolveOutputPath({
+          inputPath: "/Users/me/img/hero.png",
+          isUrl: false,
+          filename: "hero.png",
+          outputPath: undefined,
+          outputFormat: undefined,
+          seoFilename: "minato-arisato-persona-3",
+        })
+      ).toBe("/Users/me/img/minato-arisato-persona-3.png");
+    });
+
+    it("combines SEO filename with format conversion extension", () => {
+      expect(
+        resolveOutputPath({
+          inputPath: "/Users/me/img/hero.png",
+          isUrl: false,
+          filename: "hero.png",
+          outputPath: undefined,
+          outputFormat: "webp",
+          seoFilename: "scenic-mountain-view",
+        })
+      ).toBe("/Users/me/img/scenic-mountain-view.webp");
+    });
+
+    it("uses SEO filename inside directory output_path", () => {
+      expect(
+        resolveOutputPath({
+          inputPath: "/Users/me/img/hero.png",
+          isUrl: false,
+          filename: "hero.png",
+          outputPath: "/Users/me/dist/",
+          outputFormat: undefined,
+          seoFilename: "hero-mountain-view",
+        })
+      ).toBe("/Users/me/dist/hero-mountain-view.png");
+    });
+
+    it("explicit non-directory output_path always wins — SEO filename ignored", () => {
+      expect(
+        resolveOutputPath({
+          inputPath: "/Users/me/img/hero.png",
+          isUrl: false,
+          filename: "hero.png",
+          outputPath: "/tmp/custom.png",
+          outputFormat: undefined,
+          seoFilename: "some-seo-slug",
+        })
+      ).toBe("/tmp/custom.png");
+    });
+
+    it("uses SEO filename for URL input saved to CWD", () => {
+      expect(
+        resolveOutputPath({
+          inputPath: "https://cdn.example.com/photo.jpg",
+          isUrl: true,
+          filename: "photo.jpg",
+          outputPath: undefined,
+          outputFormat: undefined,
+          seoFilename: "product-photo-lifestyle",
+          cwd: "/Users/me/project",
+        })
+      ).toBe("/Users/me/project/product-photo-lifestyle.jpg");
+    });
+  });
 });
