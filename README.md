@@ -15,7 +15,7 @@ Add to your MCP client config:
   "mcpServers": {
     "tinify": {
       "command": "npx",
-      "args": ["-y", "@tinify-ai/mcp-server"]
+      "args": ["-y", "@tinify-ai/mcp-server@latest"]
     }
   }
 }
@@ -35,7 +35,7 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
   "mcpServers": {
     "tinify": {
       "command": "npx",
-      "args": ["-y", "@tinify-ai/mcp-server"]
+      "args": ["-y", "@tinify-ai/mcp-server@latest"]
     }
   }
 }
@@ -46,7 +46,7 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
 <summary><strong>Claude Code</strong></summary>
 
 ```bash
-claude mcp add tinify -- npx -y @tinify-ai/mcp-server
+claude mcp add tinify -- npx -y @tinify-ai/mcp-server@latest
 ```
 </details>
 
@@ -60,7 +60,7 @@ Add to `.cursor/mcp.json` in your project root:
   "mcpServers": {
     "tinify": {
       "command": "npx",
-      "args": ["-y", "@tinify-ai/mcp-server"]
+      "args": ["-y", "@tinify-ai/mcp-server@latest"]
     }
   }
 }
@@ -77,7 +77,7 @@ Edit `~/.codeium/windsurf/mcp_config.json`:
   "mcpServers": {
     "tinify": {
       "command": "npx",
-      "args": ["-y", "@tinify-ai/mcp-server"]
+      "args": ["-y", "@tinify-ai/mcp-server@latest"]
     }
   }
 }
@@ -86,48 +86,86 @@ Edit `~/.codeium/windsurf/mcp_config.json`:
 
 ## Tool: `optimize_image`
 
-Optimizes an image with smart defaults: AI-powered upscaling, resizing/cropping, compression, and SEO tag generation — all in one image optimization tool.
+Optimizes an image with smart lossy compression (typically 60-80% size reduction), optional resize/upscale/format conversion, and AI-generated SEO metadata. Accepts absolute local file paths or remote URLs.
 
 ### Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `input` | string | Yes | — | Local file path or remote URL |
-| `output_path` | string | No | auto | Where to save the result |
-| `output_format` | string | No | original | jpg, png, webp, avif, or original |
+| `input` | string | Yes | — | Absolute local file path or remote URL |
+| `output_path` | string | No | auto | File path or directory (ending in `/`). If omitted: saves next to original with SEO slug or `.tinified` suffix |
+| `output_format` | string | No | original | `jpeg`, `png`, `webp`, or `original` |
 | `output_width_px` | int | No | — | Target width in pixels |
 | `output_height_px` | int | No | — | Target height in pixels |
-| `output_upscale_factor` | float | No | — | Scale factor (2.0, 4.0) |
-| `output_resize_mode` | string | No | pad | pad or crop |
-| `output_aspect_lock` | bool | No | true | Maintain aspect ratio |
-| `output_seo_tag_gen` | bool | No | true | Generate SEO metadata |
+| `output_upscale_factor` | float | No | — | AI upscale factor (e.g. 2.0, 4.0) |
+| `output_resize_mode` | string | No | pad | `pad` (white padding) or `crop` (smart crop). Only used when both width and height are set |
+| `output_seo_tag_gen` | bool | No | true | Generate SEO metadata and rename file to SEO slug. Costs 1 extra credit |
+
+### Resize Behavior
+
+| Dimensions provided | Behavior | `output_resize_mode` |
+|---|---|---|
+| Width only | Proportional scale | N/A |
+| Height only | Proportional scale | N/A |
+| Width + Height | Exact dimensions, white padding | `pad` (default) |
+| Width + Height | Exact dimensions, smart crop | `crop` |
 
 ### Examples
 
-**Basic optimization:**
-> "Optimize hero.png"
+**Basic compression** — just compress, keep format and dimensions:
+
+```json
+{ "input": "/Users/me/photos/hero.png" }
+```
 
 **Convert to WebP:**
-> "Optimize hero.png as webp"
 
-**Resize and optimize:**
-> "Optimize hero.png to 1920x1080"
+```json
+{ "input": "/Users/me/hero.png", "output_format": "webp" }
+```
 
-**Upscale a small image:**
-> "Upscale logo.png by 4x"
+**Resize proportionally** — set one dimension, the other scales:
 
-**Save to specific path:**
-> "Optimize hero.png and save to ./dist/hero.webp"
+```json
+{ "input": "/Users/me/hero.png", "output_width_px": 1200 }
+```
 
-**Batch from URL:**
-> "Optimize https://example.com/photo.jpg"
+**Exact dimensions with padding** — white bars fill the gap:
 
-## Output
+```json
+{ "input": "/Users/me/hero.png", "output_width_px": 1080, "output_height_px": 1080 }
+```
 
-Returns optimized file path and metadata:
+**Exact dimensions with smart crop:**
+
+```json
+{ "input": "/Users/me/hero.png", "output_width_px": 1080, "output_height_px": 1080, "output_resize_mode": "crop" }
+```
+
+**AI upscale 4x:**
+
+```json
+{ "input": "/Users/me/icon.png", "output_upscale_factor": 4 }
+```
+
+**From URL, save to directory:**
+
+```json
+{ "input": "https://example.com/photo.jpg", "output_path": "/Users/me/assets/" }
+```
+
+**Skip SEO to save 1 credit:**
+
+```json
+{ "input": "/Users/me/hero.png", "output_seo_tag_gen": false }
+```
+
+### Output
+
+Returns a text summary and structured metadata:
 
 ```
-Optimized: hero.tinified.webp
+Optimized: /Users/me/photos/modern-office-workspace.webp
 Size: 142.3 KB
 Compression: 73%
 Format: webp
@@ -135,7 +173,21 @@ Dimensions: 1920x1080
 Alt text: Modern office workspace with laptop and coffee cup on wooden desk
 ```
 
-Structured metadata is also returned with `seo_keywords`, `seo_filename`, and full dimension/size data.
+**Structured output fields:**
+
+```json
+{
+  "output_path": "/Users/me/photos/modern-office-workspace.webp",
+  "output_size_bytes": 145715,
+  "output_width_px": 1920,
+  "output_height_px": 1080,
+  "output_format": "webp",
+  "compression_ratio": 0.27,
+  "seo_alt_text": "Modern office workspace with laptop and coffee cup on wooden desk",
+  "seo_keywords": ["office", "workspace", "laptop", "desk", "modern"],
+  "seo_filename": "modern-office-workspace"
+}
+```
 
 ## Supported Formats
 
@@ -158,11 +210,11 @@ Max file size: 50 MB.
 ```
 Local file or URL
   → Upload to Tinify API
-    → Smart compression (smart lossy, typically 60-80% reduction)
+    → Smart compression (lossy, typically 60-80% reduction)
     → AI SEO tag generation (alt text, keywords, filename)
     → Optional: resize, upscale, format conversion
   → Download optimized file
-    → Save next to original as name.tinified.ext
+    → Save with SEO filename slug (or .tinified suffix if SEO disabled)
 ```
 
 All processing happens server-side via the [Tinify API](https://tinify.ai). The MCP server is a thin client that orchestrates the pipeline.
@@ -172,24 +224,41 @@ All processing happens server-side via the [Tinify API](https://tinify.ai). The 
 | | Free Tier |
 |---|-----------|
 | Credits/day | 20 |
-| Images/day | 5 (with default settings) |
-| Cost per image | 4 credits (3 compression + 1 SEO tags) |
+| Images/day | ~5 (with default settings) |
+| Cost per image | 3 credits + 1 if SEO tags enabled (default) |
 | Signup required | No |
 
 Session tokens are stored locally at `~/.tinify/session.json` and persist across invocations.
 
 Need more credits? See plans at [tinify.ai](https://tinify.ai/#pricing).
 
+## Tips for AI Agents
+
+Paste this into your `CLAUDE.md` or system prompt to help agents use the tool effectively:
+
+```
+## Tinify MCP — optimize_image
+
+- Each call costs 3 credits + 1 if SEO enabled (default). Free tier: 20 credits/day.
+- Always use absolute file paths, not relative.
+- Set only width OR height for proportional resize. Set both for exact dimensions.
+- When both dimensions are set, use output_resize_mode: "crop" for photos, "pad" for logos/icons.
+- output_seo_tag_gen (default true) renames the file to an SEO slug and generates alt text + keywords.
+- Set output_seo_tag_gen: false to save 1 credit when SEO metadata is not needed.
+- HEIC, TIFF, BMP inputs are auto-converted to JPG.
+- For batch processing, call optimize_image once per file.
+```
+
 ## Troubleshooting
 
 **Server not appearing in tool list:**
 - Restart your MCP client after editing the config
 - Ensure Node.js >= 18 is installed: `node --version`
-- Try running directly: `npx -y @tinify-ai/mcp-server` (should start without errors)
+- Try running directly: `npx -y @tinify-ai/mcp-server@latest` (should start without errors)
 
 **"Insufficient credits" error:**
 - Free tier allows 20 credits/day (resets daily)
-- Each image costs 4 credits with default settings
+- Each image costs 3-4 credits depending on settings
 - Disable SEO tags (`output_seo_tag_gen: false`) to reduce to 3 credits/image
 
 **File not found:**

@@ -17,7 +17,6 @@ export interface OptimizeImageParams {
   output_height_px?: number;
   output_upscale_factor?: number;
   output_resize_mode?: "pad" | "crop";
-  output_aspect_lock?: boolean;
   output_seo_tag_gen?: boolean;
   baseUrl?: string;
   timeoutMs?: number;
@@ -76,11 +75,13 @@ export async function optimizeImage(
   if (params.output_upscale_factor !== undefined) {
     settings.output_upscale_factor = params.output_upscale_factor;
   }
-  if (params.output_resize_mode !== undefined) {
+  // Derive aspect_lock: false only when both dimensions are specified (exact output requested)
+  // Otherwise omit (backend defaults to true = proportional scaling)
+  if (params.output_width_px !== undefined && params.output_height_px !== undefined) {
+    settings.output_aspect_lock = false;
+    settings.output_resize_mode = params.output_resize_mode ?? "pad";
+  } else if (params.output_resize_mode !== undefined) {
     settings.output_resize_mode = params.output_resize_mode;
-  }
-  if (params.output_aspect_lock !== undefined) {
-    settings.output_aspect_lock = params.output_aspect_lock;
   }
 
   // 4. Trigger processing
@@ -116,6 +117,10 @@ export async function optimizeImage(
       params.output_format && params.output_format !== "original"
         ? params.output_format
         : completedJob.processed_format ?? undefined,
+    seoFilename:
+      params.output_seo_tag_gen !== false
+        ? (completedJob.seo_filename ?? undefined)
+        : undefined,
   });
 
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });

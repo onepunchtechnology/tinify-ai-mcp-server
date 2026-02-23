@@ -6,15 +6,16 @@ interface OutputPathParams {
   filename: string;
   outputPath: string | undefined;
   outputFormat: string | undefined;
+  seoFilename?: string;
   cwd?: string;
 }
 
 function getTinifiedFilename(
   filename: string,
   outputFormat: string | undefined,
+  seoFilename?: string,
 ): string {
   const ext = path.extname(filename);
-  const name = path.basename(filename, ext);
 
   let newExt: string;
   if (!outputFormat || outputFormat === "original") {
@@ -23,6 +24,11 @@ function getTinifiedFilename(
     newExt = `.${outputFormat}`;
   }
 
+  if (seoFilename) {
+    return `${seoFilename}${newExt}`;
+  }
+
+  const name = path.basename(filename, ext);
   return `${name}.tinified${newExt}`;
 }
 
@@ -31,13 +37,13 @@ function isDirectoryPath(p: string): boolean {
 }
 
 export function resolveOutputPath(params: OutputPathParams): string {
-  const { inputPath, isUrl, filename, outputPath, outputFormat, cwd } = params;
+  const { inputPath, isUrl, filename, outputPath, outputFormat, seoFilename, cwd } = params;
 
   if (outputPath && !isDirectoryPath(outputPath)) {
     return path.resolve(outputPath);
   }
 
-  const tinifiedName = getTinifiedFilename(filename, outputFormat);
+  const tinifiedName = getTinifiedFilename(filename, outputFormat, seoFilename);
 
   if (outputPath && isDirectoryPath(outputPath)) {
     return path.join(path.resolve(outputPath), tinifiedName);
