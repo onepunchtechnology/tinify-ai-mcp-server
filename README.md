@@ -221,25 +221,64 @@ All processing happens server-side via the [Tinify API](https://tinify.ai). The 
 
 ## Credits
 
-| | Free Tier |
-|---|-----------|
-| Credits/day | 20 |
-| Images/day | ~5 (with default settings) |
-| Cost per image | 3 credits + 1 if SEO tags enabled (default) |
-| Signup required | No |
+| | Guest | Free | Pro | Max |
+|---|---|---|---|---|
+| Credits/day or month | 20/day | 50/day | 3,000/month | 10,000/month |
+| Images/day (default settings) | ~5 | ~12 | ~750 | ~2,500 |
+| Cost per image | 3 credits + 1 SEO | same | same | same |
+| Signup required | No | Free signup | Paid | Paid |
 
-Session tokens are stored locally at `~/.tinify/session.json` and persist across invocations.
+Session data is stored locally at `~/.tinify/session.json` and persists across invocations.
 
-Need more credits? See plans at [tinify.ai](https://tinify.ai/#pricing).
+## Account & Credits
+
+Log in to unlock more credits and share them across the web app and MCP server:
+
+```
+Use the login tool to sign in.
+Use the status tool to check your current credits.
+Use the upgrade tool to open the pricing page.
+Use the logout tool to sign out.
+```
+
+### login
+
+Opens a browser window to complete login (Google, Facebook, or email/magic link). After approval, your account is linked and credits are shared with the web app.
+
+```
+Login complete: user@example.com (Pro tier, 2,850 of 3,000 credits remaining)
+```
+
+### status
+
+Check your current account status and credits before batch processing:
+
+```
+Logged in as user@example.com (Pro tier)
+Credits: 2,850 of 3,000 remaining
+Resets: 03/01/2026, 12:00 AM PST
+```
+
+### logout
+
+Revokes the session and reverts to guest mode (20 credits/day).
+
+### upgrade
+
+Opens [tinify.ai/pricing](https://tinify.ai/pricing) in your browser.
 
 ## Tips for AI Agents
 
 Paste this into your `CLAUDE.md` or system prompt to help agents use the tool effectively:
 
 ```
-## Tinify MCP — optimize_image
+## Tinify MCP
 
-- Each call costs 3 credits + 1 if SEO enabled (default). Free tier: 20 credits/day.
+Tools: optimize_image, login, logout, status, upgrade
+
+- Use status to check credits before batch processing
+- Each optimize_image call costs 3 credits + 1 if SEO enabled (default)
+- Guest: 20 credits/day. Free account: 50/day. Pro: 3,000/month.
 - Always use absolute file paths, not relative.
 - Set only width OR height for proportional resize. Set both for exact dimensions.
 - When both dimensions are set, use output_resize_mode: "crop" for photos, "pad" for logos/icons.
@@ -247,6 +286,7 @@ Paste this into your `CLAUDE.md` or system prompt to help agents use the tool ef
 - Set output_seo_tag_gen: false to save 1 credit when SEO metadata is not needed.
 - HEIC, TIFF, BMP inputs are auto-converted to JPG.
 - For batch processing, call optimize_image once per file.
+- If credits run out, use login to sign in or upgrade to open pricing.
 ```
 
 ## Troubleshooting
@@ -257,9 +297,19 @@ Paste this into your `CLAUDE.md` or system prompt to help agents use the tool ef
 - Try running directly: `npx -y @tinify-ai/mcp-server@latest` (should start without errors)
 
 **"Insufficient credits" error:**
-- Free tier allows 20 credits/day (resets daily)
-- Each image costs 3-4 credits depending on settings
-- Disable SEO tags (`output_seo_tag_gen: false`) to reduce to 3 credits/image
+- Use the `status` tool to check remaining credits
+- Use the `login` tool to sign in for more credits (free accounts get 50/day)
+- Use the `upgrade` tool to see paid plans (Pro: 3,000/month, Max: 10,000/month)
+- Disable SEO tags (`output_seo_tag_gen: false`) to reduce cost to 3 credits/image
+
+**Login browser window doesn't open:**
+- Open this URL manually: `https://tinify.ai/mcp/authorize` and enter the code shown in the terminal
+- Ensure a browser is installed and accessible
+
+**Session token issues:**
+- Session data is stored at `~/.tinify/session.json`
+- Delete this file to reset and start fresh
+- Use `logout` then `login` to re-authenticate
 
 **File not found:**
 - Use absolute paths for local files
