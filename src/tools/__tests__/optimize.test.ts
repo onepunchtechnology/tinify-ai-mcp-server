@@ -34,7 +34,7 @@ describe("optimizeImage", () => {
     vi.clearAllMocks();
     vi.mocked(SessionManager).mockImplementation(() => ({
       sessionDir: "/tmp/.tinify",
-      getToken: vi.fn().mockReturnValue(null),
+      getAuthHeaders: vi.fn().mockReturnValue({}),
       saveToken: vi.fn(),
     }) as any);
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "tinify-optimize-test-"));
@@ -226,7 +226,7 @@ describe("optimizeImage", () => {
       capturedSaveToken = vi.fn();
       return {
         sessionDir: "/tmp/.tinify",
-        getToken: vi.fn().mockReturnValue(null),
+        getAuthHeaders: vi.fn().mockReturnValue({}),
         saveToken: capturedSaveToken,
       } as any;
     });

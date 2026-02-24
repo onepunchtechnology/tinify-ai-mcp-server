@@ -29,7 +29,7 @@ describe("triggerProcessing", () => {
       baseUrl: "https://api.tinify.ai",
       tempFileIds: ["temp-1"],
       settings,
-      sessionToken: "token-123",
+      authHeaders: { "X-Session-Token": "token-123" },
     });
 
     expect(result.jobs[0].id).toBe("job-1");
@@ -60,7 +60,7 @@ describe("triggerProcessing", () => {
       baseUrl: "https://api.tinify.ai",
       tempFileIds: ["temp-1"],
       settings: {},
-      sessionToken: "my-session-token",
+      authHeaders: { "X-Session-Token": "my-session-token" },
     });
 
     const headers = mockFetch.mock.calls[0][1].headers;
@@ -82,7 +82,7 @@ describe("triggerProcessing", () => {
       baseUrl: "https://api.tinify.ai",
       tempFileIds: ["temp-1"],
       settings: {},
-      sessionToken: null,
+      authHeaders: {},
     });
 
     const headers = mockFetch.mock.calls[0][1].headers;
@@ -107,7 +107,7 @@ describe("triggerProcessing", () => {
       baseUrl: "https://api.tinify.ai",
       tempFileIds: ["temp-1", "temp-2"],
       settings: { output_format: "webp" },
-      sessionToken: null,
+      authHeaders: {},
     });
 
     const body = JSON.parse(mockFetch.mock.calls[0][1].body);
@@ -128,7 +128,7 @@ describe("triggerProcessing", () => {
         baseUrl: "https://api.tinify.ai",
         tempFileIds: ["temp-1"],
         settings: {},
-        sessionToken: null,
+        authHeaders: {},
       })
     ).rejects.toThrow("Internal processing error");
   });
@@ -151,7 +151,7 @@ describe("triggerProcessing", () => {
         baseUrl: "https://api.tinify.ai",
         tempFileIds: ["temp-1"],
         settings: { output_seo_tag_gen: true },
-        sessionToken: "token",
+        authHeaders: { "X-Session-Token": "token" },
       })
     ).rejects.toThrow(/Insufficient credits/);
   });

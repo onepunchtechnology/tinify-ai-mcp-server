@@ -4,7 +4,7 @@ interface UploadParams {
   baseUrl: string;
   fileBuffer: Buffer;
   filename: string;
-  sessionToken: string | null;
+  authHeaders: Record<string, string>;
 }
 
 interface UploadResult {
@@ -16,7 +16,7 @@ interface UploadResult {
 }
 
 export async function uploadFile(params: UploadParams): Promise<UploadResult> {
-  const { baseUrl, fileBuffer, filename, sessionToken } = params;
+  const { baseUrl, fileBuffer, filename, authHeaders } = params;
 
   const formData = new FormData();
   formData.append(
@@ -25,10 +25,7 @@ export async function uploadFile(params: UploadParams): Promise<UploadResult> {
     filename,
   );
 
-  const headers: Record<string, string> = {};
-  if (sessionToken) {
-    headers["X-Session-Token"] = sessionToken;
-  }
+  const headers: Record<string, string> = { ...authHeaders };
 
   const response = await fetch(`${baseUrl}/upload`, {
     method: "POST",
