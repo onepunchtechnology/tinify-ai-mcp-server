@@ -49,5 +49,18 @@ The server exposes a single tool: `optimize_image`
 ## Credits
 
 Each image costs 4 credits (3 compression + 1 SEO tags).
-Free tier: 20 credits/day = 5 images with default settings.
-Need more? Visit https://tinify.ai/#pricing
+Guest tier: 20 credits/day. Free account: 50/day. Pro: 3,000/month. Max: 10,000/month.
+Need more? Use the `upgrade` tool or visit https://tinify.ai/pricing
+
+## Account Management
+
+Four additional tools are available for account management:
+
+| Tool | Description |
+|------|-------------|
+| `login` | Log in via browser (Google, Facebook, or email). Shared credits with web app. |
+| `logout` | Log out and revert to guest session (20 credits/day). |
+| `status` | Check login state, tier, credits remaining, and reset time. |
+| `upgrade` | Open pricing page in browser (Free: 50/day, Pro: 3,000/month, Max: 10,000/month). |
+
+Recommended usage: call `status` before batch processing to verify sufficient credits.
