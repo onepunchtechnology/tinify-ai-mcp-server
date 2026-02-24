@@ -51,3 +51,64 @@ describe("SessionManager", () => {
     expect(defaultManager.sessionDir).toBe(expectedDir);
   });
 });
+
+describe("mcp_token", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "tinify-test-mcp-"));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("returns null mcpToken when not set", () => {
+    const mgr = new SessionManager(tmpDir);
+    mgr.saveToken("guest_abc");
+    expect(mgr.getMcpToken()).toBeNull();
+  });
+
+  it("saves and retrieves mcp_token", () => {
+    const mgr = new SessionManager(tmpDir);
+    mgr.saveMcpToken("mcp_abc123", "user@email.com", "pro");
+    expect(mgr.getMcpToken()).toBe("mcp_abc123");
+  });
+
+  it("preserves session_token when saving mcp_token", () => {
+    const mgr = new SessionManager(tmpDir);
+    mgr.saveToken("guest_abc");
+    mgr.saveMcpToken("mcp_abc123", "user@email.com", "pro");
+    expect(mgr.getToken()).toBe("guest_abc");
+    expect(mgr.getMcpToken()).toBe("mcp_abc123");
+  });
+
+  it("clears mcp_token on clearMcpToken", () => {
+    const mgr = new SessionManager(tmpDir);
+    mgr.saveToken("guest_abc");
+    mgr.saveMcpToken("mcp_abc123", "user@email.com", "pro");
+    mgr.clearMcpToken();
+    expect(mgr.getMcpToken()).toBeNull();
+    expect(mgr.getToken()).toBe("guest_abc");
+  });
+
+  it("getAuthHeaders returns Bearer for mcp_token", () => {
+    const mgr = new SessionManager(tmpDir);
+    mgr.saveMcpToken("mcp_abc123", "user@email.com", "pro");
+    const headers = mgr.getAuthHeaders();
+    expect(headers).toEqual({ Authorization: "Bearer mcp_abc123" });
+  });
+
+  it("getAuthHeaders returns X-Session-Token for guest", () => {
+    const mgr = new SessionManager(tmpDir);
+    mgr.saveToken("guest_abc");
+    const headers = mgr.getAuthHeaders();
+    expect(headers).toEqual({ "X-Session-Token": "guest_abc" });
+  });
+
+  it("getAuthHeaders returns empty object when no tokens", () => {
+    const mgr = new SessionManager(tmpDir);
+    const headers = mgr.getAuthHeaders();
+    expect(headers).toEqual({});
+  });
+});
