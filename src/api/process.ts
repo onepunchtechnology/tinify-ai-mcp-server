@@ -15,7 +15,7 @@ interface ProcessParams {
   baseUrl: string;
   tempFileIds: string[];
   settings: ProcessingSettings;
-  sessionToken: string | null;
+  authHeaders: Record<string, string>;
 }
 
 interface JobInfo {
@@ -32,14 +32,12 @@ export interface ProcessResult {
 }
 
 export async function triggerProcessing(params: ProcessParams): Promise<ProcessResult> {
-  const { baseUrl, tempFileIds, settings, sessionToken } = params;
+  const { baseUrl, tempFileIds, settings, authHeaders } = params;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    ...authHeaders,
   };
-  if (sessionToken) {
-    headers["X-Session-Token"] = sessionToken;
-  }
 
   const response = await fetch(`${baseUrl}/auto`, {
     method: "POST",
@@ -53,12 +51,30 @@ export async function triggerProcessing(params: ProcessParams): Promise<ProcessR
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     if (response.status === 429) {
-      const remaining = response.headers.get("X-RateLimit-Remaining") ?? "0";
-      throw new ApiError(
-        `Insufficient credits. ${remaining} of 20 daily credits left. ${body.detail ?? ""}`.trim(),
-        429,
-        body.detail,
-      );
+      if (body.is_guest) {
+        throw new ApiError(
+          `You've used all ${body.credits_limit || 20} free daily credits. ` +
+          `Log in for more credits (free = 50/day, Pro = 3,000/month). ` +
+          `Use the login tool to sign in, or wait until credits reset.`,
+          429,
+          body.detail,
+        );
+      } else if (body.tier) {
+        throw new ApiError(
+          `You've used all ${body.credits_limit} credits for this period (${body.tier} tier). ` +
+          `Upgrade for more credits, or wait until they reset.`,
+          429,
+          body.detail,
+        );
+      } else {
+        // Fallback for old backend format
+        const remaining = response.headers.get("X-RateLimit-Remaining") ?? "0";
+        throw new ApiError(
+          `Insufficient credits. ${remaining} credits remaining.`,
+          429,
+          body.detail,
+        );
+      }
     }
     throw new ApiError(body.detail || "Processing failed", response.status, body.detail);
   }

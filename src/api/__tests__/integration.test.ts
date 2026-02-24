@@ -111,7 +111,7 @@ describe("API integration tests (real HTTP server, no fetch mock)", () => {
         baseUrl,
         fileBuffer: Buffer.from("fake-png"),
         filename: "hero.png",
-        sessionToken: null,
+        authHeaders: {},
       });
 
       expect(result.temp_file_id).toBe("temp-real-123");
@@ -142,7 +142,7 @@ describe("API integration tests (real HTTP server, no fetch mock)", () => {
         baseUrl,
         fileBuffer: Buffer.from("data"),
         filename: "photo.jpg",
-        sessionToken: "existing-session",
+        authHeaders: { "X-Session-Token": "existing-session" },
       });
 
       expect(receivedToken).toBe("existing-session");
@@ -159,7 +159,7 @@ describe("API integration tests (real HTTP server, no fetch mock)", () => {
           baseUrl,
           fileBuffer: Buffer.from("huge"),
           filename: "huge.png",
-          sessionToken: null,
+          authHeaders: {},
         }),
       ).rejects.toThrow("File exceeds maximum size limit");
     });
@@ -175,7 +175,7 @@ describe("API integration tests (real HTTP server, no fetch mock)", () => {
           baseUrl,
           fileBuffer: Buffer.from("data"),
           filename: "bad.bmp",
-          sessionToken: null,
+          authHeaders: {},
         }),
       ).rejects.toThrow("Unsupported image format");
     });
@@ -202,7 +202,7 @@ describe("API integration tests (real HTTP server, no fetch mock)", () => {
         baseUrl,
         tempFileIds: ["temp-1"],
         settings: { output_format: "webp", output_seo_tag_gen: true },
-        sessionToken: null,
+        authHeaders: {},
       });
 
       expect(result.jobs[0].id).toBe("job-real-1");
@@ -232,7 +232,7 @@ describe("API integration tests (real HTTP server, no fetch mock)", () => {
         baseUrl,
         tempFileIds: ["temp-1"],
         settings: {},
-        sessionToken: null,
+        authHeaders: {},
       });
 
       expect(requestedPath).toBe("/auto");
@@ -253,7 +253,7 @@ describe("API integration tests (real HTTP server, no fetch mock)", () => {
           baseUrl,
           tempFileIds: ["temp-1"],
           settings: {},
-          sessionToken: null,
+          authHeaders: {},
         }),
       ).rejects.toThrow(/Insufficient credits/);
     });

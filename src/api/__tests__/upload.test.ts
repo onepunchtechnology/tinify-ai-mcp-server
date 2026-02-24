@@ -26,7 +26,7 @@ describe("uploadFile", () => {
       baseUrl: "https://api.tinify.ai",
       fileBuffer: Buffer.from("fake-image"),
       filename: "hero.png",
-      sessionToken: null,
+      authHeaders: {},
     });
 
     expect(result.temp_file_id).toBe("temp-123");
@@ -52,7 +52,7 @@ describe("uploadFile", () => {
       baseUrl: "https://api.tinify.ai",
       fileBuffer: Buffer.from("fake"),
       filename: "test.jpg",
-      sessionToken: "existing-token",
+      authHeaders: { "X-Session-Token": "existing-token" },
     });
 
     const headers = mockFetch.mock.calls[0][1].headers;
@@ -71,7 +71,7 @@ describe("uploadFile", () => {
         baseUrl: "https://api.tinify.ai",
         fileBuffer: Buffer.from("fake"),
         filename: "bad.bmp",
-        sessionToken: null,
+        authHeaders: {},
       })
     ).rejects.toThrow("Unsupported image format");
   });
@@ -88,7 +88,7 @@ describe("uploadFile", () => {
         baseUrl: "https://api.tinify.ai",
         fileBuffer: Buffer.from("huge"),
         filename: "big.png",
-        sessionToken: null,
+        authHeaders: {},
       })
     ).rejects.toThrow("File exceeds maximum size limit");
   });
@@ -110,7 +110,7 @@ describe("uploadFile", () => {
       baseUrl: "https://api.tinify.ai",
       fileBuffer: Buffer.from("data"),
       filename: "test.png",
-      sessionToken: null,
+      authHeaders: {},
     });
 
     const headers = mockFetch.mock.calls[0][1].headers;
@@ -129,7 +129,7 @@ describe("uploadFile", () => {
         baseUrl: "https://api.tinify.ai",
         fileBuffer: Buffer.from("data"),
         filename: "test.png",
-        sessionToken: null,
+        authHeaders: {},
       })
     ).rejects.toThrow("Internal server error");
   });

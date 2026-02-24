@@ -45,20 +45,18 @@ export async function optimizeImage(
   const input = await resolveInput(params.input);
 
   // 2. Upload to backend
-  const sessionToken = sessionManager.getToken();
+  const authHeaders = sessionManager.getAuthHeaders();
   const uploadResult = await uploadFile({
     baseUrl,
     fileBuffer: input.buffer,
     filename: input.filename,
-    sessionToken,
+    authHeaders,
   });
 
-  // Persist new session token if returned
+  // Persist new session token if returned (for guest sessions)
   if (uploadResult.session_token) {
     sessionManager.saveToken(uploadResult.session_token);
   }
-
-  const currentToken = uploadResult.session_token ?? sessionToken;
 
   // 3. Build settings (smart defaults: compress always, SEO tags on)
   const settings: ProcessingSettings = {
@@ -89,7 +87,7 @@ export async function optimizeImage(
     baseUrl,
     tempFileIds: [uploadResult.temp_file_id],
     settings,
-    sessionToken: currentToken,
+    authHeaders,
   });
 
   const job = processResult.jobs[0];
