@@ -98,12 +98,12 @@ Optimizes an image with smart lossy compression (typically 60-80% size reduction
 | `output_width_px` | int | No | — | Target width in pixels |
 | `output_height_px` | int | No | — | Target height in pixels |
 | `output_upscale_factor` | float | No | — | AI upscale factor (e.g. 2.0, 4.0) |
-| `output_resize_mode` | string | No | pad | `pad` (white padding) or `crop` (smart crop). Only used when both width and height are set |
+| `output_resize_behavior` | string | No | pad | `pad` (white padding) or `crop` (smart crop). Only used when both width and height are set |
 | `output_seo_tag_gen` | bool | No | true | Generate SEO metadata and rename file to SEO slug. Costs 1 extra credit |
 
 ### Resize Behavior
 
-| Dimensions provided | Behavior | `output_resize_mode` |
+| Dimensions provided | Behavior | `output_resize_behavior` |
 |---|---|---|
 | Width only | Proportional scale | N/A |
 | Height only | Proportional scale | N/A |
@@ -139,7 +139,7 @@ Optimizes an image with smart lossy compression (typically 60-80% size reduction
 **Exact dimensions with smart crop:**
 
 ```json
-{ "input": "/Users/me/hero.png", "output_width_px": 1080, "output_height_px": 1080, "output_resize_mode": "crop" }
+{ "input": "/Users/me/hero.png", "output_width_px": 1080, "output_height_px": 1080, "output_resize_behavior": "crop" }
 ```
 
 **AI upscale 4x:**
@@ -281,7 +281,7 @@ Tools: optimize_image, login, logout, status, upgrade
 - Guest: 20 credits/day. Free account: 50/day. Pro: 3,000/month.
 - Always use absolute file paths, not relative.
 - Set only width OR height for proportional resize. Set both for exact dimensions.
-- When both dimensions are set, use output_resize_mode: "crop" for photos, "pad" for logos/icons.
+- When both dimensions are set, use output_resize_behavior: "crop" for photos, "pad" for logos/icons.
 - output_seo_tag_gen (default true) renames the file to an SEO slug and generates alt text + keywords.
 - Set output_seo_tag_gen: false to save 1 credit when SEO metadata is not needed.
 - HEIC, TIFF, BMP inputs are auto-converted to JPG.

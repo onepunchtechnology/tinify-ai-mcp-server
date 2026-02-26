@@ -12,7 +12,7 @@ import { formatErrorForMcp } from "./errors.js";
 
 const server = new McpServer({
   name: "tinify",
-  version: "1.1.0",
+  version: "1.2.0",
 });
 
 server.registerTool(
@@ -47,7 +47,7 @@ server.registerTool(
         .positive()
         .optional()
         .describe(
-          "Target width in pixels. Set only width for proportional resize. Set both width and height for exact output dimensions (see output_resize_mode).",
+          "Target width in pixels. Set only width for proportional resize. Set both width and height for exact output dimensions (see output_resize_behavior).",
         ),
       output_height_px: z
         .number()
@@ -55,7 +55,7 @@ server.registerTool(
         .positive()
         .optional()
         .describe(
-          "Target height in pixels. Set only height for proportional resize. Set both width and height for exact output dimensions (see output_resize_mode).",
+          "Target height in pixels. Set only height for proportional resize. Set both width and height for exact output dimensions (see output_resize_behavior).",
         ),
       output_upscale_factor: z
         .number()
@@ -63,13 +63,12 @@ server.registerTool(
         .max(10)
         .optional()
         .describe("Upscale factor (e.g., 2.0 for 2x, 4.0 for 4x). Triggers AI upscaling."),
-      output_resize_mode: z
+      output_resize_behavior: z
         .enum(["pad", "crop"])
         .optional()
         .describe(
-          "How to handle aspect ratio mismatch when both width and height are specified. " +
-          "'pad' adds white padding (default), 'crop' uses smart cropping. " +
-          "Only applies when both output_width_px and output_height_px are set.",
+          "When both width and height are set and aspect ratio differs: " +
+          "'pad' adds white padding (default), 'crop' smart-crops to fill exact dimensions",
         ),
       output_seo_tag_gen: z
         .boolean()
@@ -99,7 +98,7 @@ server.registerTool(
         output_width_px: params.output_width_px,
         output_height_px: params.output_height_px,
         output_upscale_factor: params.output_upscale_factor,
-        output_resize_mode: params.output_resize_mode as any,
+        output_resize_behavior: params.output_resize_behavior as any,
         output_seo_tag_gen: params.output_seo_tag_gen,
       });
 

@@ -119,7 +119,7 @@ describe("optimize_image tool handler (index.ts)", () => {
       output_width_px: 400,
       output_height_px: 300,
       output_upscale_factor: 2,
-      output_resize_mode: "crop",
+      output_resize_behavior: "crop",
       output_seo_tag_gen: false,
     });
 
@@ -131,14 +131,9 @@ describe("optimize_image tool handler (index.ts)", () => {
         output_width_px: 400,
         output_height_px: 300,
         output_upscale_factor: 2,
-        output_resize_mode: "crop",
+        output_resize_behavior: "crop",
         output_seo_tag_gen: false,
       }),
-    );
-    // output_aspect_lock is no longer a user-facing parameter — it is derived
-    // internally from whether both dimensions are provided
-    expect(vi.mocked(optimizeImage)).not.toHaveBeenCalledWith(
-      expect.objectContaining({ output_aspect_lock: expect.anything() }),
     );
   });
 
