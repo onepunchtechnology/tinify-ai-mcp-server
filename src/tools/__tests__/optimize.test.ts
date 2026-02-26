@@ -188,6 +188,7 @@ describe("optimizeImage", () => {
       const result = await optimizeImage({
         input: "https://cdn.example.com/photo.jpg",
         baseUrl: "https://api.tinify.ai",
+        output_path: tmpDir + "/",
       });
 
       expect(vi.mocked(uploadFile)).toHaveBeenCalledWith(
