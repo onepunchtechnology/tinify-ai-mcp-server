@@ -296,7 +296,7 @@ describe("optimizeImage", () => {
     expect(result.output_size_bytes).toBe(12345);
   });
 
-  it("passes upscale_factor and resize_mode to processing settings", async () => {
+  it("passes upscale_factor and resize_behavior to processing settings", async () => {
     vi.mocked(uploadFile).mockResolvedValueOnce({
       temp_file_id: "temp-1",
       original_filename: "hero.png",
@@ -325,18 +325,17 @@ describe("optimizeImage", () => {
       input: path.join(tmpDir, "hero.png"),
       baseUrl: "https://api.tinify.ai",
       output_upscale_factor: 2,
-      output_resize_mode: "crop",
+      output_width_px: 1920,
+      output_height_px: 1080,
+      output_resize_behavior: "crop",
     });
 
     const processCall = vi.mocked(triggerProcessing).mock.calls[0][0];
     expect(processCall.settings.output_upscale_factor).toBe(2);
-    // resize_mode without both dimensions goes through else-if branch unchanged
-    expect(processCall.settings.output_resize_mode).toBe("crop");
-    // aspect_lock is NOT set when dimensions are not both provided
-    expect(processCall.settings.output_aspect_lock).toBeUndefined();
+    expect(processCall.settings.output_resize_behavior).toBe("crop");
   });
 
-  describe("aspect_lock derivation from dimension inputs", () => {
+  describe("resize_behavior derivation from dimension inputs", () => {
     function mockSuccessFlow() {
       vi.mocked(uploadFile).mockResolvedValueOnce({
         temp_file_id: "temp-1",
@@ -365,7 +364,7 @@ describe("optimizeImage", () => {
       });
     }
 
-    it("derives output_aspect_lock=false and defaults resize_mode=pad when both dimensions specified", async () => {
+    it("defaults resize_behavior=pad when both dimensions specified", async () => {
       mockSuccessFlow();
 
       await optimizeImage({
@@ -376,11 +375,10 @@ describe("optimizeImage", () => {
       });
 
       const processCall = vi.mocked(triggerProcessing).mock.calls[0][0];
-      expect(processCall.settings.output_aspect_lock).toBe(false);
-      expect(processCall.settings.output_resize_mode).toBe("pad");
+      expect(processCall.settings.output_resize_behavior).toBe("pad");
     });
 
-    it("uses crop mode when both dimensions + output_resize_mode='crop'", async () => {
+    it("uses crop mode when both dimensions + output_resize_behavior='crop'", async () => {
       mockSuccessFlow();
 
       await optimizeImage({
@@ -388,15 +386,14 @@ describe("optimizeImage", () => {
         baseUrl: "https://api.tinify.ai",
         output_width_px: 2048,
         output_height_px: 2048,
-        output_resize_mode: "crop",
+        output_resize_behavior: "crop",
       });
 
       const processCall = vi.mocked(triggerProcessing).mock.calls[0][0];
-      expect(processCall.settings.output_aspect_lock).toBe(false);
-      expect(processCall.settings.output_resize_mode).toBe("crop");
+      expect(processCall.settings.output_resize_behavior).toBe("crop");
     });
 
-    it("does NOT set output_aspect_lock when only width is specified", async () => {
+    it("defaults resize_behavior=pad when only width is specified", async () => {
       mockSuccessFlow();
 
       await optimizeImage({
@@ -406,11 +403,10 @@ describe("optimizeImage", () => {
       });
 
       const processCall = vi.mocked(triggerProcessing).mock.calls[0][0];
-      expect(processCall.settings.output_aspect_lock).toBeUndefined();
-      expect(processCall.settings.output_resize_mode).toBeUndefined();
+      expect(processCall.settings.output_resize_behavior).toBe("pad");
     });
 
-    it("does NOT set output_aspect_lock when only height is specified", async () => {
+    it("defaults resize_behavior=pad when only height is specified", async () => {
       mockSuccessFlow();
 
       await optimizeImage({
@@ -420,11 +416,10 @@ describe("optimizeImage", () => {
       });
 
       const processCall = vi.mocked(triggerProcessing).mock.calls[0][0];
-      expect(processCall.settings.output_aspect_lock).toBeUndefined();
-      expect(processCall.settings.output_resize_mode).toBeUndefined();
+      expect(processCall.settings.output_resize_behavior).toBe("pad");
     });
 
-    it("does NOT set output_aspect_lock when no dimensions are specified", async () => {
+    it("does NOT set output_resize_behavior when no dimensions are specified", async () => {
       mockSuccessFlow();
 
       await optimizeImage({
@@ -433,7 +428,7 @@ describe("optimizeImage", () => {
       });
 
       const processCall = vi.mocked(triggerProcessing).mock.calls[0][0];
-      expect(processCall.settings.output_aspect_lock).toBeUndefined();
+      expect(processCall.settings.output_resize_behavior).toBeUndefined();
     });
   });
 

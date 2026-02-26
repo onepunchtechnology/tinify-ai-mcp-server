@@ -16,7 +16,7 @@ export interface OptimizeImageParams {
   output_width_px?: number;
   output_height_px?: number;
   output_upscale_factor?: number;
-  output_resize_mode?: "pad" | "crop";
+  output_resize_behavior?: "pad" | "crop";
   output_seo_tag_gen?: boolean;
   baseUrl?: string;
   timeoutMs?: number;
@@ -73,13 +73,9 @@ export async function optimizeImage(
   if (params.output_upscale_factor !== undefined) {
     settings.output_upscale_factor = params.output_upscale_factor;
   }
-  // Derive aspect_lock: false only when both dimensions are specified (exact output requested)
-  // Otherwise omit (backend defaults to true = proportional scaling)
-  if (params.output_width_px !== undefined && params.output_height_px !== undefined) {
-    settings.output_aspect_lock = false;
-    settings.output_resize_mode = params.output_resize_mode ?? "pad";
-  } else if (params.output_resize_mode !== undefined) {
-    settings.output_resize_mode = params.output_resize_mode;
+  // When dimensions are set, pass resize_behavior (pad default, crop opt-in)
+  if (params.output_width_px !== undefined || params.output_height_px !== undefined) {
+    settings.output_resize_behavior = params.output_resize_behavior ?? "pad";
   }
 
   // 4. Trigger processing

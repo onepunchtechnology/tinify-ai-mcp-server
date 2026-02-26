@@ -5,8 +5,7 @@ export interface ProcessingSettings {
   output_upscale_factor?: number;
   output_width?: number;
   output_height?: number;
-  output_aspect_lock?: boolean;
-  output_resize_mode?: "pad" | "crop";
+  output_resize_behavior?: "pad" | "crop";
   output_seo_tag_gen?: boolean;
   output_seo_rename?: boolean;
 }
