@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { resolveOutputPath } from "../output.js";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { resolveOutputPath, resolveUniqueOutputPath } from "../output.js";
+import * as fs from "node:fs";
 
 describe("resolveOutputPath", () => {
   it("saves next to original with tinified suffix", () => {
@@ -179,5 +180,69 @@ describe("resolveOutputPath", () => {
         })
       ).toBe("/Users/me/project/product-photo-lifestyle.jpg");
     });
+  });
+});
+
+vi.mock("node:fs");
+
+describe("resolveUniqueOutputPath", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("returns original path when no collision", () => {
+    vi.mocked(fs.existsSync).mockReturnValue(false);
+    const result = resolveUniqueOutputPath({
+      inputPath: "/Users/me/img/hero.png",
+      isUrl: false,
+      filename: "hero.png",
+      outputPath: undefined,
+      outputFormat: undefined,
+      seoFilename: "scenic-mountain-view-a3f2",
+    });
+    expect(result).toBe("/Users/me/img/scenic-mountain-view-a3f2.png");
+  });
+
+  it("appends -2 when file already exists", () => {
+    vi.mocked(fs.existsSync).mockImplementation((p) => p === "/Users/me/img/scenic-mountain-view-a3f2.png");
+    const result = resolveUniqueOutputPath({
+      inputPath: "/Users/me/img/hero.png",
+      isUrl: false,
+      filename: "hero.png",
+      outputPath: undefined,
+      outputFormat: undefined,
+      seoFilename: "scenic-mountain-view-a3f2",
+    });
+    expect(result).toBe("/Users/me/img/scenic-mountain-view-a3f2-2.png");
+  });
+
+  it("increments counter until unique path found", () => {
+    const existing = new Set([
+      "/Users/me/img/scenic-mountain-view-a3f2.png",
+      "/Users/me/img/scenic-mountain-view-a3f2-2.png",
+      "/Users/me/img/scenic-mountain-view-a3f2-3.png",
+    ]);
+    vi.mocked(fs.existsSync).mockImplementation((p) => existing.has(p as string));
+    const result = resolveUniqueOutputPath({
+      inputPath: "/Users/me/img/hero.png",
+      isUrl: false,
+      filename: "hero.png",
+      outputPath: undefined,
+      outputFormat: undefined,
+      seoFilename: "scenic-mountain-view-a3f2",
+    });
+    expect(result).toBe("/Users/me/img/scenic-mountain-view-a3f2-4.png");
+  });
+
+  it("handles tinified filenames (non-SEO) with collisions", () => {
+    vi.mocked(fs.existsSync).mockImplementation((p) => p === "/Users/me/img/hero.tinified.png");
+    const result = resolveUniqueOutputPath({
+      inputPath: "/Users/me/img/hero.png",
+      isUrl: false,
+      filename: "hero.png",
+      outputPath: undefined,
+      outputFormat: undefined,
+    });
+    expect(result).toBe("/Users/me/img/hero.tinified-2.png");
   });
 });

@@ -1,3 +1,4 @@
+import * as fs from "node:fs";
 import * as path from "node:path";
 
 interface OutputPathParams {
@@ -56,4 +57,17 @@ export function resolveOutputPath(params: OutputPathParams): string {
 
   const inputDir = path.dirname(path.resolve(inputPath));
   return path.join(inputDir, tinifiedName);
+}
+
+export function resolveUniqueOutputPath(params: OutputPathParams): string {
+  let outputPath = resolveOutputPath(params);
+  if (!fs.existsSync(outputPath)) return outputPath;
+
+  const ext = path.extname(outputPath);
+  const base = outputPath.slice(0, -ext.length || undefined);
+  let counter = 2;
+  while (fs.existsSync(`${base}-${counter}${ext}`)) {
+    counter++;
+  }
+  return `${base}-${counter}${ext}`;
 }
