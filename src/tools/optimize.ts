@@ -5,7 +5,7 @@ import { triggerProcessing, type ProcessingSettings } from "../api/process.js";
 import { waitForCompletion } from "../api/status.js";
 import { downloadFile } from "../api/download.js";
 import { resolveInput } from "../utils/input.js";
-import { resolveOutputPath } from "../utils/output.js";
+import { resolveUniqueOutputPath } from "../utils/output.js";
 import { SessionManager } from "../session/manager.js";
 import { DEFAULT_BASE_URL } from "../api/client.js";
 
@@ -102,7 +102,7 @@ export async function optimizeImage(
   const downloadResult = await downloadFile({ baseUrl, jobId: job.id });
 
   // 7. Resolve output path and save
-  const outputPath = resolveOutputPath({
+  const outputPath = resolveUniqueOutputPath({
     inputPath: params.input,
     isUrl: input.isUrl,
     filename: input.filename,
