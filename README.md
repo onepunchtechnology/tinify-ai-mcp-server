@@ -84,6 +84,52 @@ Edit `~/.codeium/windsurf/mcp_config.json`:
 ```
 </details>
 
+<details>
+<summary><strong>Cline</strong></summary>
+
+Open Cline settings → MCP Servers → Add, then paste:
+
+```json
+{
+  "mcpServers": {
+    "tinify": {
+      "command": "npx",
+      "args": ["-y", "@tinify-ai/mcp-server@latest"]
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><strong>Gemini CLI</strong></summary>
+
+Edit `~/.gemini/settings.json` (global) or `.gemini/settings.json` in your project root:
+
+```json
+{
+  "mcpServers": {
+    "tinify": {
+      "command": "npx",
+      "args": ["-y", "@tinify-ai/mcp-server@latest"]
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><strong>OpenAI Codex CLI</strong></summary>
+
+Edit `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.tinify]
+command = "npx"
+args = ["-y", "@tinify-ai/mcp-server@latest"]
+```
+</details>
+
 ## Tool: `optimize_image`
 
 Optimizes an image with smart lossy compression (typically 60-80% size reduction), optional resize/upscale/format conversion, and AI-generated SEO metadata. Accepts absolute local file paths or remote URLs.

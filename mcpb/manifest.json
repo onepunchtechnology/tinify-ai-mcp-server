@@ -1,0 +1,59 @@
+{
+  "manifest_version": "0.3",
+  "name": "tinify-ai",
+  "display_name": "Tinify.ai",
+  "version": "1.2.1",
+  "description": "AI-powered image optimization — compress, resize, upscale, and generate SEO tags. One tool, all formats.",
+  "long_description": "Tinify.ai optimizes images using AI-powered compression (typically 60-80% size reduction), with optional resize, upscale, format conversion, and SEO metadata generation. Supports JPEG, PNG, WebP, AVIF, HEIC, TIFF, and BMP. Free to use with 20 credits/day as a guest — no signup required.",
+  "author": {
+    "name": "onepunchtechnology",
+    "url": "https://github.com/onepunchtechnology"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/onepunchtechnology/tinify-ai-mcp-server"
+  },
+  "homepage": "https://tinify.ai",
+  "documentation": "https://github.com/onepunchtechnology/tinify-ai-mcp-server#readme",
+  "support": "https://github.com/onepunchtechnology/tinify-ai-mcp-server/issues",
+  "icon": "icon.png",
+  "license": "MIT",
+  "keywords": ["image", "optimization", "compression", "resize", "upscale", "seo", "webp", "avif", "heic"],
+  "privacy_policies": ["https://tinify.ai/privacy"],
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/index.js"]
+    }
+  },
+  "tools": [
+    {
+      "name": "optimize_image",
+      "description": "Compress, resize, upscale, convert format, and generate SEO tags for an image. Accepts local file paths or URLs."
+    },
+    {
+      "name": "login",
+      "description": "Log in to your Tinify account via browser to unlock more credits."
+    },
+    {
+      "name": "logout",
+      "description": "Log out of your Tinify account."
+    },
+    {
+      "name": "status",
+      "description": "Check account status: tier, credits remaining, and reset time."
+    },
+    {
+      "name": "upgrade",
+      "description": "Open the Tinify pricing page to upgrade your plan."
+    }
+  ],
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  }
+}

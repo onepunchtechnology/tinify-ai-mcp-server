@@ -23,8 +23,19 @@ No API key or signup required. Works out of the box with 20 free daily credits.
 |--------|------------|
 | Claude Desktop | `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows) |
 | Claude Code | `~/.claude/settings.json` or run `claude mcp add tinify -- npx @tinify-ai/mcp-server` |
+| Cline | MCP settings in Cline UI (Settings → MCP Servers → Add) |
 | Cursor | `.cursor/mcp.json` in your project root |
 | Windsurf | `~/.codeium/windsurf/mcp_config.json` |
+| OpenAI Codex CLI | `~/.codex/config.toml` (TOML format — see below) |
+| Gemini CLI | `~/.gemini/settings.json` (global) or `.gemini/settings.json` (project) |
+
+### OpenAI Codex CLI (TOML)
+
+```toml
+[mcp_servers.tinify]
+command = "npx"
+args = ["-y", "@tinify-ai/mcp-server"]
+```
 
 ## Verification
 
