@@ -40,7 +40,7 @@ export async function uploadFile(params: UploadParams): Promise<UploadResult> {
     }
     if (response.status === 415 || body.detail?.includes("Unsupported")) {
       throw new ApiError(
-        "Unsupported image format. Supported: JPEG, PNG, WebP, HEIC.",
+        "Unsupported image format. Supported: JPEG, PNG, WebP, AVIF, GIF, HEIC, TIFF, BMP.",
         response.status,
         body.detail,
       );

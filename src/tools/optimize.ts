@@ -12,7 +12,7 @@ import { DEFAULT_BASE_URL } from "../api/client.js";
 export interface OptimizeImageParams {
   input: string;
   output_path?: string;
-  output_format?: "original" | "jpg" | "png" | "webp" | "avif";
+  output_format?: "original" | "jpg" | "png" | "webp" | "avif" | "gif";
   output_width_px?: number;
   output_height_px?: number;
   output_upscale_factor?: number;
