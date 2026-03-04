@@ -1,7 +1,7 @@
 import { ApiError } from "./client.js";
 
 export interface ProcessingSettings {
-  output_format?: "original" | "jpg" | "png" | "webp" | "avif";
+  output_format?: "original" | "jpg" | "png" | "webp" | "avif" | "gif";
   output_upscale_factor?: number;
   output_width?: number;
   output_height?: number;

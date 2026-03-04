@@ -28,7 +28,7 @@ server.registerTool(
       input: z
         .string()
         .describe(
-          "Absolute local file path or remote URL of the image to optimize. Supported: JPG, PNG, WebP, AVIF, HEIC, TIFF, BMP (max 50 MB).",
+          "Absolute local file path or remote URL of the image to optimize. Supported inputs: JPG, PNG, WebP, AVIF, GIF (animated supported), HEIC, TIFF, BMP (max 50 MB). Tinify supports high-quality conversion between any input and output format.",
         ),
       output_path: z
         .string()
@@ -38,9 +38,9 @@ server.registerTool(
           "If omitted: saves next to original, named with SEO slug when SEO is enabled or .tinified suffix otherwise. URLs save to current working directory.",
         ),
       output_format: z
-        .enum(["original", "jpeg", "png", "webp"])
+        .enum(["original", "jpg", "png", "webp", "avif", "gif"])
         .optional()
-        .describe("Output format. Defaults to 'original' (keep input format)."),
+        .describe("Output format. Defaults to 'original' (keep input format). Animated GIFs stay animated when output is 'gif'; converting to other formats preserves only the first frame."),
       output_width_px: z
         .number()
         .int()
@@ -82,7 +82,7 @@ server.registerTool(
       output_size_bytes: z.number().describe("File size of the optimized image in bytes"),
       output_width_px: z.number().nullable().describe("Width of the output image in pixels"),
       output_height_px: z.number().nullable().describe("Height of the output image in pixels"),
-      output_format: z.string().nullable().describe("Output format: jpg, png, webp, or avif"),
+      output_format: z.string().nullable().describe("Output format: jpg, png, webp, avif, or gif"),
       compression_ratio: z.number().nullable().describe("Output-to-input size ratio, e.g. 0.35 means 65% smaller"),
       seo_alt_text: z.string().nullable().describe("AI-generated image alt text for accessibility and SEO"),
       seo_keywords: z.array(z.string()).nullable().describe("AI-generated keywords describing the image"),
