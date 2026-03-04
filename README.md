@@ -237,17 +237,18 @@ Alt text: Modern office workspace with laptop and coffee cup on wooden desk
 
 ## Supported Formats
 
-| Format | Input | Output |
-|--------|-------|--------|
-| JPG | Yes | Yes |
-| PNG | Yes | Yes |
-| WebP | Yes | Yes |
-| AVIF | Yes | Yes |
-| HEIC/HEIF | Yes* | No |
-| TIFF | Yes* | No |
-| BMP | Yes* | No |
+| Format | Input | Output | Notes |
+|--------|-------|--------|-------|
+| JPG | Yes | Yes | |
+| PNG | Yes | Yes | |
+| WebP | Yes | Yes | |
+| AVIF | Yes | Yes | |
+| GIF | Yes | Yes | Animated GIFs preserved when output is GIF |
+| HEIC/HEIF | Yes* | No | Auto-converted to JPG at upload |
+| TIFF | Yes* | No | Auto-converted to JPG at upload |
+| BMP | Yes* | No | Auto-converted to JPG at upload |
 
-*Automatically converted to JPG at upload time.
+Tinify supports high-quality conversion between any input and output format combination. Converting an animated GIF to a non-GIF format (JPG, PNG, WebP, AVIF) preserves only the first frame.
 
 Max file size: 50 MB.
 
@@ -330,6 +331,8 @@ Tools: optimize_image, login, logout, status, upgrade
 - When both dimensions are set, use output_resize_behavior: "crop" for photos, "pad" for logos/icons.
 - output_seo_tag_gen (default true) renames the file to an SEO slug and generates alt text + keywords.
 - Set output_seo_tag_gen: false to save 1 credit when SEO metadata is not needed.
+- GIF is supported for both input and output; animated GIFs stay animated when output_format is "gif".
+- Converting an animated GIF to jpg/png/webp/avif preserves only the first frame.
 - HEIC, TIFF, BMP inputs are auto-converted to JPG.
 - For batch processing, call optimize_image once per file.
 - If credits run out, use login to sign in or upgrade to open pricing.
