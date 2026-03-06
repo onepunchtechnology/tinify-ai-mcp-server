@@ -22,8 +22,9 @@ server.registerTool(
     description:
       "Optimize an image: smart lossy compression (typically 60-80% size reduction), optional resize/upscale/format conversion, and AI-generated SEO metadata. " +
       "Accepts absolute local file paths or remote URLs. Supported input formats: JPG, PNG, WebP, AVIF, GIF, HEIC, TIFF, BMP (max 50 MB). Supported output formats: JPG, PNG, WebP, AVIF, GIF. " +
-      "Each call costs 3 credits + 1 if SEO tags enabled. Free tier: 20 credits/day, no signup. " +
-      "Log in with the login tool for more credits. Use status tool to check remaining credits before batch processing.",
+      "Each call costs 3 credits + 1 if SEO tags enabled. Animated GIFs are processed frame-by-frame (each frame optimized individually). " +
+      "Cost = frames × per-frame operations. Use confirm_gif_cost: true after reviewing the cost warning. " +
+      "Free tier: 20 credits/day, no signup. Log in with the login tool for more credits. Use status tool to check remaining credits before batch processing.",
     inputSchema: {
       input: z
         .string()
@@ -76,6 +77,23 @@ server.registerTool(
         .describe(
           "Generate SEO metadata (alt text, keywords, filename) and rename output file to SEO slug. Costs 1 extra credit. Default: true.",
         ),
+      confirm_gif_cost: z
+        .boolean()
+        .optional()
+        .describe(
+          "Set to true to proceed with animated GIF processing after seeing cost warning. Required for animated GIFs to prevent unexpected credit consumption.",
+        ),
+      gif_frame_limit: z
+        .number()
+        .int()
+        .min(1)
+        .max(100)
+        .optional()
+        .describe("Maximum frames to process for animated GIFs (1-100, default 100). Reduces cost by sampling fewer frames while preserving animation."),
+      _gif_temp_file_id: z
+        .string()
+        .optional()
+        .describe("Internal: temp file ID from a previous GIF cost warning. Skips re-upload."),
     },
     outputSchema: {
       output_path: z.string().describe("Absolute path where the optimized file was saved"),
@@ -100,7 +118,15 @@ server.registerTool(
         output_upscale_factor: params.output_upscale_factor,
         output_resize_behavior: params.output_resize_behavior as any,
         output_seo_tag_gen: params.output_seo_tag_gen,
+        confirm_gif_cost: params.confirm_gif_cost,
+        gif_frame_limit: params.gif_frame_limit,
+        _gif_temp_file_id: params._gif_temp_file_id,
       });
+
+      // Handle GIF cost warning (not a real result)
+      if (result._gif_warning) {
+        return { content: [{ type: "text" as const, text: result._gif_warning as string }] };
+      }
 
       const summary = [
         `Optimized: ${result.output_path}`,

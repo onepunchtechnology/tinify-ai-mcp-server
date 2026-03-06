@@ -8,6 +8,7 @@ export interface ProcessingSettings {
   output_resize_behavior?: "pad" | "crop";
   output_seo_tag_gen?: boolean;
   output_seo_rename?: boolean;
+  gif_frame_limit?: number;
 }
 
 interface ProcessParams {
