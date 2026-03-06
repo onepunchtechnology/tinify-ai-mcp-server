@@ -13,6 +13,8 @@ interface UploadResult {
   file_size: number;
   mime_type: string;
   session_token: string | null;
+  gif_frame_count?: number;
+  gif_fps?: number;
 }
 
 export async function uploadFile(params: UploadParams): Promise<UploadResult> {
