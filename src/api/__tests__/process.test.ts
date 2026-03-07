@@ -1,4 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+// Mock x402 client before importing process module
+vi.mock("../../x402/client.js", () => ({
+  getX402Fetch: vi.fn(async () => null),
+  isX402Configured: vi.fn(() => false),
+  getWalletAddress: vi.fn(async () => null),
+}));
+
 import { triggerProcessing, type ProcessingSettings } from "../process.js";
 
 const mockFetch = vi.fn();
@@ -131,6 +139,27 @@ describe("triggerProcessing", () => {
         authHeaders: {},
       })
     ).rejects.toThrow("Internal processing error");
+  });
+
+  it("throws on 402 when x402 not configured", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 402,
+      headers: new Headers(),
+      json: async () => ({
+        detail: "Payment required",
+        x402: { price_usdc: "0.05", credits_needed: 5 },
+      }),
+    });
+
+    await expect(
+      triggerProcessing({
+        baseUrl: "https://api.tinify.ai",
+        tempFileIds: ["temp-1"],
+        settings: {},
+        authHeaders: {},
+      })
+    ).rejects.toThrow(/Insufficient credits/);
   });
 
   it("throws on insufficient credits (429) with parsed details", async () => {
