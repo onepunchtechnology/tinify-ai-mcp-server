@@ -1,4 +1,5 @@
 import { ApiError } from "./client.js";
+import { getX402Fetch, isX402Configured, getWalletAddress } from "../x402/client.js";
 
 export interface ProcessingSettings {
   output_format?: "original" | "jpg" | "png" | "webp" | "avif" | "gif";
@@ -39,7 +40,11 @@ export async function triggerProcessing(params: ProcessParams): Promise<ProcessR
     ...authHeaders,
   };
 
-  const response = await fetch(`${baseUrl}/auto`, {
+  // Use x402-wrapped fetch if available (auto-handles 402 payment signing)
+  const x402Fetch = await getX402Fetch();
+  const fetchFn = x402Fetch ?? fetch;
+
+  const response = await fetchFn(`${baseUrl}/auto`, {
     method: "POST",
     headers,
     body: JSON.stringify({
@@ -50,6 +55,34 @@ export async function triggerProcessing(params: ProcessParams): Promise<ProcessR
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
+
+    // Handle 402 Payment Required (x402 not configured or payment failed)
+    if (response.status === 402) {
+      const priceUsdc = body.x402?.price_usdc ?? "unknown";
+      const creditsNeeded = body.x402?.credits_needed ?? "unknown";
+
+      if (!isX402Configured()) {
+        throw new ApiError(
+          `Insufficient credits. This operation costs $${priceUsdc} USDC (${creditsNeeded} credits).\n\n` +
+          `To enable Pay As You Go:\n` +
+          `1. Set TINIFY_X402_PRIVATE_KEY environment variable with a Base wallet private key\n` +
+          `2. Fund the wallet with USDC on Base network\n\n` +
+          `Or use \`login\` to access subscription credits.`,
+          402,
+          body.detail,
+        );
+      }
+
+      // x402 IS configured but payment still failed
+      const walletAddr = await getWalletAddress();
+      throw new ApiError(
+        `Payment failed for $${priceUsdc} USDC. Check your wallet has sufficient USDC on Base.\n` +
+        `Wallet: ${walletAddr}`,
+        402,
+        body.detail,
+      );
+    }
+
     if (response.status === 429) {
       if (body.is_guest) {
         throw new ApiError(

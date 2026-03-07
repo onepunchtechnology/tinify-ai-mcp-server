@@ -55,14 +55,26 @@ export async function getX402Fetch(): Promise<typeof fetch | null> {
       const { registerExactEvmScheme } = await import(
         "@x402/evm/exact/client"
       );
+      const { toClientEvmSigner } = await import("@x402/evm");
       const { privateKeyToAccount } = await import("viem/accounts");
+      const { createPublicClient, http } = await import("viem");
+      const { base } = await import("viem/chains");
 
       const account = privateKeyToAccount(
         process.env.TINIFY_X402_PRIVATE_KEY as `0x${string}`,
       );
 
+      // Create a public client for readContract capability
+      const publicClient = createPublicClient({
+        chain: base,
+        transport: http(),
+      });
+
+      // Compose a full ClientEvmSigner with readContract from publicClient
+      const signer = toClientEvmSigner(account, publicClient);
+
       const client = new x402Client();
-      registerExactEvmScheme(client, { signer: account });
+      registerExactEvmScheme(client, { signer });
 
       _wrappedFetch = wrapFetchWithPayment(fetch, client);
     } catch (error) {
