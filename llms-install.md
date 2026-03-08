@@ -9,7 +9,7 @@ Add the following to your MCP client configuration:
   "mcpServers": {
     "tinify": {
       "command": "npx",
-      "args": ["@tinify-ai/mcp-server"]
+      "args": ["-y", "@tinify-ai/mcp-server@latest"]
     }
   }
 }
@@ -47,19 +47,22 @@ The `optimize_image` tool should appear in the available tools list.
 
 ## What It Does
 
-The server exposes a single tool: `optimize_image`
+The server exposes an `optimize_image` tool plus four account management tools.
 
+`optimize_image`:
 - **Compresses** images using smart lossy compression (typically 60-80% size reduction)
 - **Generates SEO metadata** (alt text, keywords, filename) using AI
-- **Converts formats** (JPEG, PNG, WebP)
+- **Converts formats** (JPG, PNG, WebP, AVIF, GIF)
 - **Resizes** to specific dimensions
 - **Upscales** using AI (2x or 4x)
+- **Animated GIFs** supported (processed frame-by-frame)
 - Accepts **local files** or **remote URLs**
 - Saves optimized files next to the original with a `.tinified` suffix
 
 ## Credits
 
-Each image costs 4 credits (3 compression + 1 SEO tags).
+Base cost per image: 3 credits (compression) + 1 if SEO tags enabled + 1 if resize + 2 if AI upscale.
+Animated GIFs: per-frame cost × number of frames processed (up to gif_frame_limit, default 100).
 Guest tier: 20 credits/day. Free account: 50/day. Pro: 3,000/month. Max: 10,000/month.
 Need more? Use the `upgrade` tool or visit https://tinify.ai/pricing
 
