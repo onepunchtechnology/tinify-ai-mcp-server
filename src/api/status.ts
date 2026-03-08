@@ -25,6 +25,8 @@ interface StatusParams {
 export function waitForCompletion(params: StatusParams): Promise<CompletedJob> {
   const { baseUrl, jobId, timeoutMs = 60000 } = params;
 
+  const timeoutSecs = Math.round(timeoutMs / 1000);
+
   return new Promise((resolve, reject) => {
     const ESConstructor =
       typeof EventSource !== "undefined" ? EventSource : (EventSourcePoly as any);
@@ -32,14 +34,20 @@ export function waitForCompletion(params: StatusParams): Promise<CompletedJob> {
 
     const timeout = setTimeout(() => {
       es.close();
-      reject(new ApiError("Processing timed out after 60 seconds.", 504));
+      reject(new ApiError(`Processing timed out after ${timeoutSecs} seconds.`, 504));
     }, timeoutMs);
 
     es.addEventListener("complete", (event: any) => {
       clearTimeout(timeout);
       es.close();
 
-      const data: CompletedJob = JSON.parse(event.data);
+      let data: CompletedJob;
+      try {
+        data = JSON.parse(event.data);
+      } catch {
+        reject(new ApiError("Invalid response from server.", 500));
+        return;
+      }
 
       if (data.status === "completed") {
         resolve(data);
@@ -57,7 +65,12 @@ export function waitForCompletion(params: StatusParams): Promise<CompletedJob> {
     es.addEventListener("error", (event: any) => {
       clearTimeout(timeout);
       es.close();
-      const data = event.data ? JSON.parse(event.data) : {};
+      let data: { message?: string } = {};
+      try {
+        if (event.data) data = JSON.parse(event.data);
+      } catch {
+        // ignore parse errors, use fallback message
+      }
       reject(
         new ApiError(
           `Processing error: ${data.message ?? "Connection lost"}`,
@@ -70,7 +83,7 @@ export function waitForCompletion(params: StatusParams): Promise<CompletedJob> {
     es.addEventListener("timeout", () => {
       clearTimeout(timeout);
       es.close();
-      reject(new ApiError("Processing timed out after 60 seconds.", 504));
+      reject(new ApiError(`Processing timed out after ${timeoutSecs} seconds.`, 504));
     });
   });
 }
